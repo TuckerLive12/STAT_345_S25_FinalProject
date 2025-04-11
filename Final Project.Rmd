@@ -1,0 +1,31 @@
+---
+title: "Final Project"
+author: "Jack Kucera, Tanner Meighan, Adam Rafique"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+rm(list=ls())
+
+# Libraries
+library(tidyverse)
+library(usethis) # GitHub
+library(gitcreds) # GitHub
+
+# GitHub
+#usethis::use_git_config(user.name = "TuckerLive12", user.email = "Jack.kucera@me.com")
+#usethis::create_github_token()
+#credentials::set_github_pat("yourPAT")
+#gitcreds::gitcreds_set()
+```
+
+
+
+
+
+
+
+
+

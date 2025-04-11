@@ -1,0 +1,36 @@
+---
+title: "Super Awesome Project Template"
+output: word_document
+date: "2025-04-11"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Section One
+
+```{r student1}
+
+```
+
+
+## Section Two
+
+```{r student2}
+
+```
+
+## Section Three
+
+```{r student3}
+
+```
+
+
+
+## Section Four
+
+```{r student4}
+
+```

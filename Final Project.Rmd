@@ -21,27 +21,51 @@ library(gitcreds) # GitHub
 #gitcreds::gitcreds_set()
 ```
 
+# Functions
 
-## Jack's Work
+```{r}
+
+```
+
+# Jack's Work
+
+## Code
 
 ```{r Jack Kucera}
 dat <- rnorm(100, 10, 2)
 t.test(dat)
 ```
+### Comments
 
+```{r}
+# line 20-45 I want this to be a function 
+```
 
-## Tanners's Work
+# Tanners's Work
+
+# Code
 
 ```{r Tanner}
 
 ```
 
+### domments
 
-## Adam's Work
+```{r}
+# line 20-45 I want this to be a function 
+```
+
+# Adam's Work
+
+## Code
 
 ```{r Adam}
 
 ```
 
+## Comments
 
+```{r}
+# line 20-45 I want this to be a function 
+```
 

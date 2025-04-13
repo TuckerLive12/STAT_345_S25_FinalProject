@@ -22,10 +22,26 @@ library(gitcreds) # GitHub
 ```
 
 
+## Jack's Work
+
+```{r Jack Kucera}
+dat <- rnorm(100, 10, 2)
+t.test(dat)
+```
 
 
+## Tanners's Work
+
+```{r Tanner}
+
+```
 
 
+## Adam's Work
+
+```{r Adam}
+
+```
 
 
 

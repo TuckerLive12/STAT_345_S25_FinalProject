@@ -5,12 +5,27 @@ date: "`r Sys.Date()`"
 output: html_document
 ---
 
+### Final Project Description
+
+**General advice:** Get started early. If you wait to the last minute, it will not go well. For this project, you may find yourself spending a reasonable amount of time _searching_ for help.
+
+1. _Maps_ The US Census Bureau provides mapping shape files for a variety of variables across the entire United States. You can explore these at [https://www.census.gov/geographies/mapping-files/time-series/geo/tiger-line-file.html](https://www.census.gov/geographies/mapping-files/time-series/geo/tiger-line-file.html). Make a map that displays county boundaries for the entire United States. You may use whichever package for plotting that you'd like, though you might find the 'ggmap' and 'rdgal' packages (and related tutorials) informative here.
+
+2. _Roads_ Your goal in this step is to summarize (tabulate) the road suffixes for each county in the United States. County-level data can be found at [https://www2.census.gov/geo/tiger/TIGER2023/ROADS/](https://www2.census.gov/geo/tiger/TIGER2023/ROADS/). There are over 3000 files here, with file names that include the 5-digit GEOID for the county. As you process this data, you'll need to manage your memory in R. You'll likely want to download the file, unzip it, read it, summarize it, and then remove the file from memory. This is a great place for a function! Be sure to include the GEOID in your summary data for the next step.
+
+3. _Putting it Together_ Merge the county shape files with your county-level summaries. The main plot to create for the project is to color your map from step 1 based on the most common road suffix (summary from step 2). Beyond this plot, feel free to be creative when making at least two additional plots.
+
+
+#### Our work
+
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 rm(list=ls())
 
 # Libraries
 library(tidyverse)
+library(foreign)
 library(usethis) # GitHub
 library(gitcreds) # GitHub
 
@@ -20,6 +35,39 @@ library(gitcreds) # GitHub
 #credentials::set_github_pat("yourPAT")
 #gitcreds::gitcreds_set()
 ```
+
+### Outline
+
+Part 1: Create a map US counties (tanner)
+
+- Create a map US counties
+
+
+
+Part 2: tabulate (create a table) the road suffixes for each county in the United States. (Adam)
+
+ - This invokes memory management and over 3000 files
+ 
+ - Check all files for information (Jack?)
+    - Create a small legend for each file in the folder form website and what it contains (potentially ask Dr. Baumann) in case we need other information.
+ - Create a function that scrapes the website (https://www2.census.gov/geo/tiger/TIGER2023/ROADS/) for all the zip files, unzips them, and takes the file we want and put in into a folder in repository. (Jack)
+ - Create a function that goes through each file and scrapes the suffixes from the address while keeping the ID of that address 
+    - Find a pattern for finding the suffixes (Adam)
+    - Create a function to find suffixes and put into a tibble with ID (Adam)
+    - Create a function that matches the Id with county
+ - Create table 
+
+Part 3:
+
+  - Create suffix divided by county plot
+  - Addition Plot: A spatially contrained ... (Jack)
+
+
+
+
+
+
+
 
 # Functions
 
@@ -34,6 +82,9 @@ library(gitcreds) # GitHub
 ```{r Jack Kucera}
 dat <- rnorm(100, 10, 2)
 t.test(dat)
+
+dat <- read.dbf("tl_2023_41019_roads.dbf")
+dat
 ```
 ### Comments
 

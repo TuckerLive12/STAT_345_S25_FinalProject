@@ -81,7 +81,22 @@ Part 3:
 ## Code
 
 ```{r Jack Kucera}
-# Alabama_Roads_2023 <- read_csv("./Data_Scraping_and_Database/Alabama_Roads_2023.csv")
+Alabama_Roads_2023 <- read_csv("./Data_Scraping_and_Database/Alabama_Roads_2023.csv", col_types = cols(LINEARID = "c"))
+
+# Number of roads per county
+Alabama_Roads_2023 |>
+  count(STATE_ID,COUNTY_ID) |>
+  mutate(Num_Roads = n, .keep = "unused") |>
+  arrange(COUNTY_ID) 
+
+# Columns of file
+glimpse(Alabama_Roads_2023)
+
+# Size of file
+print("")
+Alabama_Roads_2023 |>
+  object.size() |>
+  format(units = "auto")
 ```
 ### Comments
 
@@ -120,7 +135,9 @@ counties <- counties(cb = TRUE, resolution = "20m", year = 2024)
 ### Comments
 
 ```{r}
-# Can now use Alabama_Roads_2023 <- read_csv("./Data_Scraping_and_Database/Alabama_Roads_2023.csv") for all roads in the state of Alabama.
+# Can now use 
+# Alabama_Roads_2023 <- read_csv("./Data_Scraping_and_Database/Alabama_Roads_2023.csv", col_types = cols(LINEARID = "c")) 
+# for all roads in the state of Alabama.
 ```
 
 # Adam's Work
@@ -161,6 +178,8 @@ counties <- counties(cb = TRUE)
 ## Comments
 
 ```{r}
-# Can now use Alabama_Roads_2023 <- read_csv("./Data_Scraping_and_Database/Alabama_Roads_2023.csv") for all roads in the state of Alabama.
+# Can now use 
+# Alabama_Roads_2023 <- read_csv("./Data_Scraping_and_Database/Alabama_Roads_2023.csv", col_types = cols(LINEARID = "c")) 
+# for all roads in the state of Alabama.
 ```
 

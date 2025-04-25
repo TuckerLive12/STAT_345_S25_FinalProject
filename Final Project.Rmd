@@ -81,11 +81,7 @@ Part 3:
 ## Code
 
 ```{r Jack Kucera}
-dat <- rnorm(100, 10, 2)
-t.test(dat)
-
-dat <- read.dbf("tl_2023_41019_roads.dbf")
-dat
+# Alabama_Roads_2023 <- read_csv("./Data_Scraping_and_Database/Alabama_Roads_2023.csv")
 ```
 ### Comments
 
@@ -121,10 +117,10 @@ counties <- counties(cb = TRUE, resolution = "20m", year = 2024)
  print(b)
 ```
 
-### domments
+### Comments
 
 ```{r}
-# line 20-45 I want this to be a function 
+# Can now use Alabama_Roads_2023 <- read_csv("./Data_Scraping_and_Database/Alabama_Roads_2023.csv") for all roads in the state of Alabama.
 ```
 
 # Adam's Work
@@ -165,6 +161,6 @@ counties <- counties(cb = TRUE)
 ## Comments
 
 ```{r}
-# line 20-45 I want this to be a function 
+# Can now use Alabama_Roads_2023 <- read_csv("./Data_Scraping_and_Database/Alabama_Roads_2023.csv") for all roads in the state of Alabama.
 ```
 

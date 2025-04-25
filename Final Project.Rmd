@@ -28,6 +28,7 @@ library(tidyverse)
 library(foreign)
 library(usethis) # GitHub
 library(gitcreds) # GitHub
+library(tigris)
 
 # GitHub
 #usethis::use_git_config(user.name = "TuckerLive12", user.email = "Jack.kucera@me.com")
@@ -112,7 +113,7 @@ dat
 
 ```{r Adam}
 
-
+#use ?tigris to pull up the github page with the descriptions of all the functions, use those functions to create the list of road suffixes
 
 ```
 

@@ -50,8 +50,9 @@ Part 2: tabulate (create a table) the road suffixes for each county in the Unite
  
  - Check all files for information (Jack?)
     - Create a small legend for each file in the folder form website and what it contains (potentially ask Dr. Baumann) in case we need other information.
- - Create a function that scrapes the website (https://www2.census.gov/geo/tiger/TIGER2023/ROADS/) for all the zip files, unzips them, and takes the file we want and put in into a folder in repository. (Jack)
- - Create a function that goes through each file and scrapes the suffixes from the address while keeping the ID of that address 
+    - Create a function that scrapes the website (https://www2.census.gov/geo/tiger/TIGER2023/ROADS/) for all the zip files, unzips them, and takes the file we want and put in into a folder in repository. (Jack)
+      - DO NOT HAVE TO SCRAPE. can use roads() for all data.
+    - Create a function that goes through each file and scrapes the suffixes from the address while keeping the ID of that address 
     - Find a pattern for finding the suffixes (Adam)
     - Create a function to find suffixes and put into a tibble with ID (Adam)
     - Create a function that matches the Id with county

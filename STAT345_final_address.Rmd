@@ -1,0 +1,53 @@
+---
+title: "STAT 345 Final Project - What's Your Address?"
+author: "STAT 345"
+output: html_document
+---
+
+Expected Submission: You will generate a well-written R Markdown report that addresses the following prompts. This R Markdown report should source your analysis code and only display top-level, abstracted code _if/when appropriate_. Choices made during the analysis project should be described and justified in the report. 
+
+
+Advice for getting started:
+
+- Start a conversation chain with your group members. Email is a great place to start, but other options exist (texting, social media platforms, etc.). Set some reasonable expectations for how and when you plan to respond to conversations. It is likely going to be unacceptable to only respond once per week, for example, but also likely unacceptable to expect a response within the hour. Have an honest conversation with your group members about this issue.
+
+did with text message
+
+- Start the project from a "top-down design" perspective. So, determine what the major steps of the process are, and determine what the inputs and outputs are for each of those steps (the output of step 1 will likely be the input for step 2, for example). This step is much like writing an outline for a paper before you start to write the paper itself, only much more valuable in a group setting. 
+
+did not have time
+
+- Once you have a sense of the big picture (the outline), determine some "due dates" for each step of the process. Work backwards from the final submission date, giving yourselves time to work on each of the parts as needed. Given the top-down design, you should be able to "divide and conquer" -- working on parts of the project that depend on earlier steps.
+- Decide how you plan to share code with each other. Using Git and GitHub is a really good choice here. If not, perhaps some form of shared directory online. In a worst-case scenario, email could also work. 
+
+we set up github
+ 
+- Be prepared to give Dr. Baumann (at least) weekly updates on your progress. Some of this can be done via email, but discuss with your group about times you are each available to meet online as well (in an office-hour-like setting). Feel free to request meetings with Dr. Baumann to get help.
+
+
+
+
+**General advice:** Get started early. If you wait to the last minute, it will not go well. For this project, you may find yourself spending a reasonable amount of time _searching_ for help.
+
+1. _Maps_ The US Census Bureau provides mapping shape files for a variety of variables across the entire United States. You can explore these at [https://www.census.gov/geographies/mapping-files/time-series/geo/tiger-line-file.html](https://www.census.gov/geographies/mapping-files/time-series/geo/tiger-line-file.html). Make a map that displays county boundaries for the entire United States. You may use whichever package for plotting that you'd like, though you might find the 'ggmap' and 'rdgal' packages (and related tutorials) informative here.
+
+2. _Roads_ Your goal in this step is to summarize (tabulate) the road suffixes for each county in the United States. County-level data can be found at [https://www2.census.gov/geo/tiger/TIGER2023/ROADS/](https://www2.census.gov/geo/tiger/TIGER2023/ROADS/). There are over 3000 files here, with file names that include the 5-digit GEOID for the county. As you process this data, you'll need to manage your memory in R. You'll likely want to download the file, unzip it, read it, summarize it, and then remove the file from memory. This is a great place for a function! Be sure to include the GEOID in your summary data for the next step.
+
+3. _Putting it Together_ Merge the county shape files with your county-level summaries. The main plot to create for the project is to color your map from step 1 based on the most common road suffix (summary from step 2). Beyond this plot, feel free to be creative when making at least two additional plots.
+
+```{r}
+cat <- read_csv("file.csv")
+
+cat1 <- cat |>
+  filter(state == "WI") |>
+  left_join
+
+cat1 |>
+  left_join
+
+rm(c("cat",cat1))
+gc()
+```
+
+
+

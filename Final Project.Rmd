@@ -116,8 +116,29 @@ dat
 
 #use ?tigris to pull up the github page with the descriptions of all the functions, use those functions to create the list of road suffixes
 
-#We could have a function that goes through the list of state and county FIPS code in the counties table and gives the list of roads in that particular county. We could make it a loop that opens a particular road dataset, allows us to collect the required data, then removes the dataset from the environment so we can do it again for the next dataset.
+#We could have a function that goes through the list of state and county FIPS codes (STATEFP & COUNTYFP) in the counties table and gives the list of roads in that particular county. We could make it a loop that opens a particular road dataset, allows us to collect the required data, then removes the dataset from the environment so we can do it again for the next dataset.
 
+counties <- counties(cb = TRUE)
+
+#for (i in 1:nrow(counties)) {
+  RoadData <- roads(counties$STATEFP[i], counties$COUNTYFP[i])
+  RoadData$Suffix <- str_extract(RoadData$FULLNAME, "[:upper:]{1}[:lower:]{0,3}(?:-|\\ )?[:digit:]{0,}$")
+  RoadData$Suffix <- str_extract(RoadData$Suffix, "^[:upper:]{1}[:lower:]{0,3}")
+  Compilation <- data.frame(State = counties$STATE_NAME[i], County = counties$NAME[i])
+  repeat {
+    if (RoadData$Suffix[1] %in% Compilation) {
+      
+    }
+    else {
+      x <- RoadData$Suffix[1]
+      Compilation$newRow[i] <- nrow(RoadData[RoadData$Suffix == RoadData$Suffix[1],])
+      names(Compilation)[names(Compilation) == 'newRow'] <- x
+    }
+    RoadData <- RoadData %>% filter(Suffix != Suffix[1])
+    if (nrow(RoadData) == 0) {break}
+  }
+  remove(RoadData)
+#}
 
 ```
 

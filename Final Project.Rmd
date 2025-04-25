@@ -135,9 +135,7 @@ counties <- counties(cb = TRUE, resolution = "20m", year = 2024)
 ### Comments
 
 ```{r}
-# Can now use 
-# Alabama_Roads_2023 <- read_csv("./Data_Scraping_and_Database/Alabama_Roads_2023.csv", col_types = cols(LINEARID = "c")) 
-# for all roads in the state of Alabama.
+
 ```
 
 # Adam's Work
@@ -178,8 +176,6 @@ counties <- counties(cb = TRUE)
 ## Comments
 
 ```{r}
-# Can now use 
-# Alabama_Roads_2023 <- read_csv("./Data_Scraping_and_Database/Alabama_Roads_2023.csv", col_types = cols(LINEARID = "c")) 
-# for all roads in the state of Alabama.
+
 ```
 

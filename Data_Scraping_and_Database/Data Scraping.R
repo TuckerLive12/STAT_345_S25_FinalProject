@@ -2,8 +2,34 @@ library(tigris)
 library(tidyverse)
 library(sf)
 
+################################################
+### TO DO ###
+################################################
+# Improve get_state_roads by removing the TryCatch block and using the counties()
+#  command to extract the COUNTYFP number. 
+# Create function that only needs the state ID and return a tibble of all roads in that state
+################################################
+################################################
+
 
 # Highest county FP is 840
+
+##
+# Takes in the year and state and outputs a tibble of the lowest county FP
+#  in state.
+#
+#
+##
+get_first_county_roads <- function(state, year) {
+  
+  counties <- counties(state = state, year = year) |>
+    arrange(COUNTYFP)
+  
+  tibble <- counties$COUNTYFP[1]
+  
+  return(tibble)
+}
+
 
 ##
 # Takes in the year and state and outputs a tibble that has the county ID, year, ...
@@ -11,6 +37,12 @@ library(sf)
 #
 ##
 get_state_roads <- function(tibble, state, county, year) {
+  
+  # If tibble is NULL, call function get_first_county_roads to get the needed tibble.
+  if (is.null(tibble)) {
+    tibble <- get_first_county_roads(state,year)
+  }
+  
   # (Grok) Initialize dat to NULL to avoid undefined variable issues
   dat <- NULL
   
@@ -73,6 +105,8 @@ counties <- counties(state = 1) |>
 
 tibble |>
   filter(LINEARID == "110685802980")
+
+
 
 # Some checking commands
 identical(unique(tibble$LINEARID), tibble$LINEARID)

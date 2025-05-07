@@ -26,6 +26,7 @@ rm(list=ls())
 # Libraries
 library(tidyverse)
 library(foreign)
+library(tigris)
 library(usethis) # GitHub
 library(gitcreds) # GitHub
 
@@ -81,11 +82,22 @@ Part 3:
 ## Code
 
 ```{r Jack Kucera}
-dat <- rnorm(100, 10, 2)
-t.test(dat)
+Alabama_Roads_2023 <- read_csv("./Data_Scraping_and_Database/Alabama_Roads_2023.csv", col_types = cols(LINEARID = "c"))
 
-dat <- read.dbf("tl_2023_41019_roads.dbf")
-dat
+# Number of roads per county
+Alabama_Roads_2023 |>
+  count(STATE_ID,COUNTY_ID) |>
+  mutate(Num_Roads = n, .keep = "unused") |>
+  arrange(COUNTY_ID) 
+
+# Columns of file
+glimpse(Alabama_Roads_2023)
+
+# Size of file
+print("")
+Alabama_Roads_2023 |>
+  object.size() |>
+  format(units = "auto")
 ```
 ### Comments
 
@@ -119,12 +131,13 @@ counties <- counties(cb = TRUE, resolution = "20m", year = 2024)
   )
  ggsave("us_county_map.png", plot = b, width = 32, height = 20, dpi = 600)
  print(b)
+ ## map with every county
 ```
 
-### domments
+### Comments
 
 ```{r}
-# line 20-45 I want this to be a function 
+
 ```
 
 # Adam's Work
@@ -165,6 +178,6 @@ counties <- counties(cb = TRUE)
 ## Comments
 
 ```{r}
-# line 20-45 I want this to be a function 
+
 ```
 

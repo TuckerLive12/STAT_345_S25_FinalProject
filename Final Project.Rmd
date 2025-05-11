@@ -157,21 +157,22 @@ counties <- counties(cb = TRUE) #Enters the list of counties into R's memory
 sample <- sample.int(nrow(counties), 10, replace = FALSE)
 
 #Creates the dataframe that the road data will be placed into. For now, it is designed with the intent of creating a random sample because trying to do it for the entire nation would take too long. I've tried. FIPSCode is there to make filtering the territories out of the data easier. We could keep it in the dataframe for this exact purpose.
-Compilation <- data.frame(CountyID = counties$COUNTYFP[sample[1]], No = 1, State = counties$STATE_NAME[sample[1]], County = counties$NAME[sample[1]])
+Compilation <- data.frame(StateID = counties$STATEFP[sample[1]], CountyID = counties$COUNTYFP[sample[1]], No = 1, State = counties$STATE_NAME[sample[1]], County = counties$NAME[sample[1]])
 
 for(i in 2:length(sample)) {
-  Compilation <- rbind(Compilation, list(counties$COUNTYFP[sample[i]], i, counties$STATE_NAME[sample[i]], counties$NAME[sample[i]]))
+  Compilation <- rbind(Compilation, list(counties$STATEFP[sample[i]], counties$COUNTYFP[sample[i]], i, counties$STATE_NAME[sample[i]], counties$NAME[sample[i]]))
 }
 
 #Filters out the territories. There is no FIPS Code 59, the state with the highest FIPS code is Wyoming at 58, the territory with the lowest FIPS Code is American Samoa at 60.
-Compilation <- filter(Compilation, CountyID < 60)
+Compilation <- filter(Compilation, StateID < 60)
 
 #Main loop that compiles the data for the number of each type of suffix by county. This is supposed to go up to the number of rows in the counties table, but doing it for all counties takes too long so I decided to make it go up to 10 and pick counties at random instead.
 
 for (i in 1:nrow(Compilation)) {
   
   #Pulls the index for the county whose data will be pulled. Apparently county FIPS codes aren't unique between states, and I've found an instance where two counties have the same name and the same FIPS code (Alleghany County, Virginia and Alleghany County, North Carolina)
-  j <- which(counties$COUNTYFP == Compilation$CountyID[i] & counties$NAME == Compilation$County[i] & counties$STATE_NAME == Compilation$State[i])
+  j <- which(counties$COUNTYFP == Compilation$CountyID[i] & counties$STATE_NAME == Compilation$State[i])
+  print(j)
   
   #Inputs the road data for the county in question. STATEFP is the state FPIS and COUNTYFP is the county FPIS
   RoadData <- roads(counties$STATEFP[j], counties$COUNTYFP[j])

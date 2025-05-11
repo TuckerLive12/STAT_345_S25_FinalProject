@@ -151,27 +151,73 @@ counties <- counties(cb = TRUE, resolution = "20m", year = 2024)
 
 #We could have a function that goes through the list of state and county FIPS codes (STATEFP & COUNTYFP) in the counties table and gives the list of roads in that particular county. We could make it a loop that opens a particular road dataset, allows us to collect the required data, then removes the dataset from the environment so we can do it again for the next dataset.
 
-counties <- counties(cb = TRUE)
+counties <- counties(cb = TRUE) #Enters the list of counties into R's memory
 
-#for (i in 1:nrow(counties)) {
-  RoadData <- roads(counties$STATEFP[i], counties$COUNTYFP[i])
+#Generates the random sample
+sample <- sample.int(nrow(counties), 10, replace = FALSE)
+
+#Creates the dataframe that the road data will be placed into. For now, it is designed with the intent of creating a random sample because trying to do it for the entire nation would take too long. I've tried. FIPSCode is there to make filtering the territories out of the data easier. We could keep it in the dataframe for this exact purpose.
+Compilation <- data.frame(CountyID = counties$COUNTYFP[sample[1]], No = 1, State = counties$STATE_NAME[sample[1]], County = counties$NAME[sample[1]])
+
+for(i in 2:length(sample)) {
+  Compilation <- rbind(Compilation, list(counties$COUNTYFP[sample[i]], i, counties$STATE_NAME[sample[i]], counties$NAME[sample[i]]))
+}
+
+#Filters out the territories. There is no FIPS Code 59, the state with the highest FIPS code is Wyoming at 58, the territory with the lowest FIPS Code is American Samoa at 60.
+Compilation <- filter(Compilation, CountyID < 60)
+
+#Main loop that compiles the data for the number of each type of suffix by county. This is supposed to go up to the number of rows in the counties table, but doing it for all counties takes too long so I decided to make it go up to 10 and pick counties at random instead.
+
+for (i in 1:nrow(Compilation)) {
+  
+  #Pulls the index for the county whose data will be pulled. Apparently county FIPS codes aren't unique between states, and I've found an instance where two counties have the same name and the same FIPS code (Alleghany County, Virginia and Alleghany County, North Carolina)
+  j <- which(counties$COUNTYFP == Compilation$CountyID[i] & counties$NAME == Compilation$County[i] & counties$STATE_NAME == Compilation$State[i])
+  
+  #Inputs the road data for the county in question. STATEFP is the state FPIS and COUNTYFP is the county FPIS
+  RoadData <- roads(counties$STATEFP[j], counties$COUNTYFP[j])
+  
+  #These two lines use a regular expression to separate the suffix from the rest of the name.
   RoadData$Suffix <- str_extract(RoadData$FULLNAME, "[:upper:]{1}[:lower:]{0,3}(?:-|\\ )?[:digit:]{0,}$")
   RoadData$Suffix <- str_extract(RoadData$Suffix, "^[:upper:]{1}[:lower:]{0,3}")
-  Compilation <- data.frame(State = counties$STATE_NAME[i], County = counties$NAME[i])
-  repeat {
-    if (RoadData$Suffix[1] %in% Compilation) {
+  
+  #Replaces N/A road suffixes
+  RoadData$Suffix <- replace(RoadData$Suffix, is.na(RoadData$Suffix), "Not Applicable")
+  
+  #Removes N/A road names
+  RoadData <- na.omit(RoadData)
+  
+  repeat {#Finds the number of times each suffix appears in RoadData and adds it to the dataframe
+    
+    #Adds the number to the column in the appropriate row if there's already a column for the suffix
+    if (RoadData$Suffix[1] %in% names(Compilation)) {
+      Compilation[[RoadData$Suffix[1]]][i] <- nrow(RoadData[RoadData$Suffix == RoadData$Suffix[1],])
+    }
+    
+    #Creates a new column if there isn't already a column for the suffix
+    else { 
       
-    }
-    else {
+      #Creates a temporary variable to store the suffix until it can be made the new column's name. Anything more direct than        this approach that I've tried just produces an error
       x <- RoadData$Suffix[1]
-      Compilation$newRow[i] <- nrow(RoadData[RoadData$Suffix == RoadData$Suffix[1],])
-      names(Compilation)[names(Compilation) == 'newRow'] <- x
+      
+      #0 is a placeholder value and newRow is a temporary name. I've found that both are necessary to prevent errors.
+      Compilation$newCol <- 0
+      
+      #For whatever reason, the comma at the end is necessary to make sure the code works properly
+      Compilation$newCol[i] <- nrow(RoadData[RoadData$Suffix == RoadData$Suffix[1],])
+      
+      #Changes the column name to the suffix
+      names(Compilation)[names(Compilation) == 'newCol'] <- x
     }
+    #Removes the suffix from the data
     RoadData <- RoadData %>% filter(Suffix != Suffix[1])
+    
+    #Ends the while loop once all the data has been accounted for
     if (nrow(RoadData) == 0) {break}
   }
+  
+  #Removes RoadData from the environment so we can start again
   remove(RoadData)
-#}
+}
 
 ```
 

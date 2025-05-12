@@ -242,11 +242,12 @@ bind_rows(dat, dat1)
 
 
 # Shows the highest suffix count for each county, ignores the "Not Applicable" Suffixes.
-dat <- Alabama_Roads_2023 |>
+Alabama_Roads_2023 |>
   filter(!(SUFFIX == "Not Applicable")) |>
-  group_by(COUNTY_ID) |>
+  group_by(COUNTY_ID, STATE_ID) |>
   count(SUFFIX) |>
-  slice_max(n, n = 1, with_ties = FALSE)
+  slice_max(n, n = 1, with_ties = FALSE) |>
+  print()
 
 ############
 # Create a for loop that goes through each states .csv file and extracts the highest suffix count for each county. combine the highest suffix count into one tibble, keep STATE_ID, COUNTY_ID, SUFFIX, and n (count). I suggest you do this one at a time.  

@@ -95,6 +95,8 @@ for(i in 3:103) {
   tibble <- get_state_roads(tibble, state, i, 2023)
 }
 
+glimpse(tibble)
+
 write_csv(tibble, file = "./STAT 345/STAT_345_S25_FinalProject/Data_Scraping_and_Database/Alabama_Roads_2023.csv")
 
 Alabama_Roads_2023 <- tibble

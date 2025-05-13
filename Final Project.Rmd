@@ -157,7 +157,21 @@ counties <- counties(cb = TRUE, resolution = "20m", year = 2024)
 
 counties <- counties(cb = TRUE) #Enters the list of counties into R's memory
 
-get_state_filepaths("Data_Scraping_and_Database/ToReplace_Roads_2023.csv")
+Filepaths <- get_state_filepaths("Data_Scraping_and_Database/ToReplace_Roads_2023.csv")
+
+Compilation <- data.frame(COUNTYFP = counties$COUNTYFP, STATEFP = counties$STATEFP, MOSTFREQUENT = rep("Placeholder", nrow(counties)), N = rep(0, nrow(counties)))
+
+for (i in 1:1) {
+  data <- read.csv("Data_Scraping_and_Database/Alabama_Roads_2023_Backup.csv") |>
+    filter(!is.na(FULLNAME)) |>
+    mutate(SUFFIX = str_extract(FULLNAME, "[:upper:]{1}[:lower:]{0,3}(?:-|\\ )?[:digit:]{0,}$")) |>
+    mutate(SUFFIX = str_extract(SUFFIX, "^[:upper:]{1}[:lower:]{0,3}")) |>
+    mutate(SUFFIX = replace(SUFFIX, is.na(SUFFIX), "Not Applicable")) |>
+    filter(!(SUFFIX == "Not Applicable")) |>
+    group_by(COUNTY_ID, STATE_ID) |>
+    count(SUFFIX) |>
+    slice_max(N, N = 1, with_ties = FALSE)
+}
 
 ```
 
@@ -167,15 +181,15 @@ get_state_filepaths("Data_Scraping_and_Database/ToReplace_Roads_2023.csv")
 
 
 # Removes as rows where FULLNAME has na. extracts the suffix from FULLNAME and put into new column called SUFFIX. If SUFFIX is na, replaces it with "Not Applicable".
-#dat1 <- Alabama_Roads_2023_Backup |>
-#  filter(!is.na(FULLNAME)) |>
-#  mutate(SUFFIX = str_extract(FULLNAME, "[:upper:]{1}[:lower:]{0,3}(?:-|\\ )?[:digit:]{0,}$")) |>
-#  mutate(SUFFIX = str_extract(SUFFIX, "^[:upper:]{1}[:lower:]{0,3}")) |>
-#  mutate(SUFFIX = replace(SUFFIX, is.na(SUFFIX), "Not Applicable")) |>
-#  filter(!(SUFFIX == "Not Applicable")) |>
-#  group_by(COUNTY_ID) |>
-#  count(SUFFIX) |>
-#  slice_max(n, n = 1, with_ties = FALSE)
+dat1 <- Alabama_Roads_2023_Backup |>
+  filter(!is.na(FULLNAME)) |>
+  mutate(SUFFIX = str_extract(FULLNAME, "[:upper:]{1}[:lower:]{0,3}(?:-|\\ )?[:digit:]{0,}$")) |>
+  mutate(SUFFIX = str_extract(SUFFIX, "^[:upper:]{1}[:lower:]{0,3}")) |>
+  mutate(SUFFIX = replace(SUFFIX, is.na(SUFFIX), "Not Applicable")) |>
+  filter(!(SUFFIX == "Not Applicable")) |>
+  group_by(COUNTY_ID) |>
+  count(SUFFIX) |>
+  slice_max(n, n = 1, with_ties = FALSE)
 
 #bind_rows(dat, dat1)
 

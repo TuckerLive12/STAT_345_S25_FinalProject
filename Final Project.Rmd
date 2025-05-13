@@ -82,20 +82,20 @@ Part 3:
 ## Code
 
 ```{r Jack Kucera}
-Alabama_Roads_2023 <- read_csv("./Data_Scraping_and_Database/Alabama_Roads_2023.csv", col_types = cols(LINEARID = "c"))
+Alabama_Roads_2023_Backup <- read_csv("./Data_Scraping_and_Database/Alabama_Roads_2023_Backup_Backup.csv", col_types = cols(LINEARID = "c"))
 
 # Number of roads per county
-Alabama_Roads_2023 |>
+Alabama_Roads_2023_Backup |>
   count(STATE_ID,COUNTY_ID) |>
   mutate(Num_Roads = n, .keep = "unused") |>
   arrange(COUNTY_ID) 
 
 # Columns of file
-glimpse(Alabama_Roads_2023)
+glimpse(Alabama_Roads_2023_Backup)
 
 # Size of file
 print("")
-Alabama_Roads_2023 |>
+Alabama_Roads_2023_Backup |>
   object.size() |>
   format(units = "auto")
 ```
@@ -232,7 +232,7 @@ for (i in 1:nrow(Compilation)) {
 
 
 # Removes as rows where FULLNAME has na. extracts the suffix from FULLNAME and put into new column called SUFFIX. If SUFFIX is na, replaces it with "Not Applicable".
-dat1 <- Alabama_Roads_2023 |>
+dat1 <- Alabama_Roads_2023_Backup |>
   filter(!is.na(FULLNAME)) |>
   mutate(SUFFIX = str_extract(FULLNAME, "[:upper:]{1}[:lower:]{0,3}(?:-|\\ )?[:digit:]{0,}$")) |>
   mutate(SUFFIX = str_extract(SUFFIX, "^[:upper:]{1}[:lower:]{0,3}")) |>
@@ -246,7 +246,7 @@ bind_rows(dat, dat1)
 
 
 # Shows the highest suffix count for each county, ignores the "Not Applicable" Suffixes.
-Alabama_Roads_2023 |>
+Alabama_Roads_2023_Backup |>
   filter(!(SUFFIX == "Not Applicable")) |>
   group_by(COUNTY_ID, STATE_ID) |>
   count(SUFFIX) |>
@@ -275,4 +275,47 @@ states <- c(
 
 
 ```
+
+
+# Maps 
+```{r}
+
+##may need to rename certain columns so everything matches for joins
+
+
+## makes a key for each county to be identified
+counties$GEOID <- paste0(counties$STATEFP, counties$COUNTYFP)
+dat2$GEOID <- paste0(dat2$STATEFP, dat2$COUNTYFP)
+
+
+
+ala_counties <- counties %>% filter(STATEFP == "01")
+
+##dat2 is a left join of counties filtered to Alabama(ala_counties) and dat 1 needed to adjust some variable names in order to join  
+##may need to re cast county id column in dat1. countyfp column in counties df are characters while county id are doubles 
+
+dat2_plain <- dat2 %>% st_drop_geometry()
+
+
+ala_map_data <- left_join(ala_counties, dat2_plain, by = "GEOID")
+
+##wouldnt graph properly without above two lines 
+
+ggplot(data = ala_map_data) +
+  geom_sf(aes(fill = SUFFIX), color = "black", size = 0.1) +
+  theme_minimal() +
+  labs(
+    title = "Most Common Road Suffix by County in Alabama",
+    fill = "Road Suffix"
+  ) + ##change title for full map
+  theme(
+    axis.text = element_blank(),
+    axis.ticks = element_blank(),
+    panel.grid = element_blank()
+  )
+
+```
+
+
+
 

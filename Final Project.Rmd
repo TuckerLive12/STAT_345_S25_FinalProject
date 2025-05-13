@@ -157,6 +157,28 @@ counties <- counties(cb = TRUE, resolution = "20m", year = 2024)
 
 counties <- counties(cb = TRUE) #Enters the list of counties into R's memory
 
+
+#Adds all the csv file names into an array to make scraping easier
+
+file_location <- "./Data_Scraping_and_Database/TOREPLACE_Roads_2023.csv"
+
+states <- c(
+  "Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", 
+  "Delaware", "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", 
+  "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan", 
+  "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "NewHampshire", 
+  "NewJersey", "NewMexico", "NewYork", "NorthCarolina", "NorthDakota", "Ohio", 
+  "Oklahoma", "Oregon", "Pennsylvania", "RhodeIsland", "SouthCarolina", "SouthDakota", 
+  "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington", "WestVirginia", 
+  "Wisconsin", "Wyoming"
+)
+
+FileLocation <- rep("Placeholder", length(states))
+
+for (i in 1:length(states)) {
+  FileLocation[i] <- str_replace(file_location, "TOREPLACE", states[i])
+}
+
 ```
 
 ## Comments
@@ -189,25 +211,6 @@ counties <- counties(cb = TRUE) #Enters the list of counties into R's memory
 ############
 # Create a for loop that goes through each states .csv file and extracts the highest suffix count for each county. combine the highest suffix count into one tibble, keep STATE_ID, COUNTY_ID, SUFFIX, and n (count). I suggest you do this one at a time.  
 ##########
-
-file_location <- "./Data_Scraping_and_Database/TOREPLACE_Roads_2023.csv"
-
-states <- c(
-  "Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", 
-  "Delaware", "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", 
-  "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan", 
-  "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "NewHampshire", 
-  "NewJersey", "NewMexico", "NewYork", "NorthCarolina", "NorthDakota", "Ohio", 
-  "Oklahoma", "Oregon", "Pennsylvania", "RhodeIsland", "SouthCarolina", "SouthDakota", 
-  "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington", "WestVirginia", 
-  "Wisconsin", "Wyoming"
-)
-
-FileLocation <- rep("Placeholder", length(states))
-
-for (i in 1:length(states)) {
-  FileLocation[i] <- str_replace(file_location, "TOREPLACE", states[i])
-}
 
 
 

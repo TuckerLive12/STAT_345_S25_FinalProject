@@ -5,28 +5,27 @@ library(sf)
 ################################################
 ### TO DO ###
 ################################################
-# Improve get_state_roads by removing the TryCatch block and using the counties()
-#  command to extract the COUNTYFP number. 
-# Create function that only needs the state ID and return a tibble of all roads in that state
+# Run write_all_state_roads() for all the data (Make sure there are no contraints)
 ################################################
 ################################################
 
-
-# Function summary comments done by Grok
+###########
+# Function summary comments done by Grok with minor edits
+###########
 
 #' Get County FIPS Codes for a State
 #'
 #' Retrieves the FIPS codes for counties in a specified state and year.
 #'
-#' @param state The state for which to retrieve county FIPS codes (numeric or charactor).
-#' @param year The year for the data (numeric or charactor).
+#' @param state The state for which to retrieve county FIPS codes (numeric or character).
+#' @param year The year for the data (numeric or character).
 #' @return A character vector of county FIPS codes.
 get_county_fips <- function(state, year) {
   
   counties <- counties(state = state, year = year) |>
     arrange(COUNTYFP)
   
-  return(counties$COUNTYFP[1:5]) # REMOBER TO REMOVE [1:5]
+  return(counties$COUNTYFP) 
 }
 
 #' Retrieve Road Data for a State
@@ -43,7 +42,7 @@ get_state_roads <- function(state, year) {
   county_FIPS <- get_county_fips(state = state, year = year) 
   
   # Helpful printout
-  print(paste("Downloading state", state, ", county", county_FIPS[1], "."))
+  print(paste("Downloading state", state, "county", county_FIPS[1], "."))
   
   # Create a tibble with the first county's roads in it.
   #  Necessary because bind_rows() does not work if the first argument is null
@@ -62,7 +61,7 @@ get_state_roads <- function(state, year) {
   for (i in 2:(length(county_FIPS))) {
     
     # Helpful printout
-    print(paste("Downloading state", state, ", county", county_FIPS[i], "."))
+    print(paste("Downloading state", state, "county", county_FIPS[i], "."))
     
     # (Grok) Initialize dat to NULL to avoid undefined variable and memory issues
     dat <- NULL
@@ -138,6 +137,7 @@ get_state_filepaths <- function(filepath) {
 #' Downloads road data for each state and writes it to separate CSV files, managing memory by removing data after writing.
 #'
 #' @param filepath A character string representing the file path template for saving road data, with "ToReplace" as a placeholder.
+#'  eg. "./Data_Scraping_and_Database/ToReplace_Roads_2023.csv"
 #' @param year The year for the road data (numeric or character).
 #' @return None. The function writes CSV files to the specified file paths.
 write_all_state_roads <- function(filepath, year) {
@@ -147,7 +147,7 @@ write_all_state_roads <- function(filepath, year) {
   
   # Go through all states (FIPS codes) and extracts the road data
   #  then it writes that road data to .csv and removes it from memory
-  for(i in 1:(nrow(states)-47)) { #DONT FORGET TO REMOVE -45
+  for(i in 1:(nrow(states))) { 
     
     # Gets a tibble of all the roads in that state
     tibble <- get_state_roads(as.numeric(states$fips[i]), year = year)
@@ -158,8 +158,12 @@ write_all_state_roads <- function(filepath, year) {
     # Removes tibble from memory
     rm(tibble)
     
+    # Clearing unused memory
+    gc()
   }
   
+  # A nice printout
+  print("Done Downloading!")
 }
 
 write_all_state_roads("./Data_Scraping_and_Database/ToReplace_Roads_2023.csv",2023)

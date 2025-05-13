@@ -134,26 +134,31 @@ get_state_filepaths <- function(filepath) {
 
 #' Write Road Data for All States to CSV Files
 #'
-#' Downloads road data for each state and writes it to separate CSV files, managing memory by removing data after writing.
+#' Downloads road data for specified states and writes it to separate CSV files, managing memory by removing data after writing.
 #'
-#' @param filepath A character string representing the file path template for saving road data, with "ToReplace" as a placeholder.
-#'  eg. "./Data_Scraping_and_Database/ToReplace_Roads_2023.csv"
+#' @param filepath A character string representing the file path template for saving road data, with "ToReplace" as a placeholder (e.g., "./Data_Scraping_and_Database/ToReplace_Roads_2023.csv").
 #' @param year The year for the road data (numeric or character).
+#' @param states A numeric vector of state indices (1 to 50) or 0 to download all states. Default is 0.
 #' @return None. The function writes CSV files to the specified file paths.
-write_all_state_roads <- function(filepath, year) {
+write_all_state_roads <- function(filepath, year, states = 0) {
+  
+  # Check if states = 0, if so download all states (1:50)
+  if (states == 0) {
+    states = 1:50
+  }
   
   # Get file paths and State FIPS codes for extraction and writing to .csv
-  states <- get_state_filepaths(filepath)
+  statesFIPS_filepath <- get_state_filepaths(filepath)
   
   # Go through all states (FIPS codes) and extracts the road data
   #  then it writes that road data to .csv and removes it from memory
-  for(i in 1:(nrow(states))) { 
+  for(i in 1:(length(states))) { 
     
     # Gets a tibble of all the roads in that state
-    tibble <- get_state_roads(as.numeric(states$fips[i]), year = year)
+    tibble <- get_state_roads(statesFIPS_filepath$fips[states], year = year)
     
     # writes that tibble to the folder with the file_path column
-    write_csv(tibble, file = states$file_path[i])
+    write_csv(tibble, file = statesFIPS_filepath$file_path[i])
     
     # Removes tibble from memory
     rm(tibble)
@@ -166,7 +171,8 @@ write_all_state_roads <- function(filepath, year) {
   print("Done Downloading!")
 }
 
-write_all_state_roads("./Data_Scraping_and_Database/ToReplace_Roads_2023.csv",2023)
+# Downloaded the first 4 states roads
+write_all_state_roads("./Data_Scraping_and_Database/ToReplace_Roads_2023.csv",2023,5)
 
 
 

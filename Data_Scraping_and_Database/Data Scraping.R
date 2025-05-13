@@ -88,9 +88,11 @@ get_state_roads <- function(state, year) {
 #  Takes in the year and state and outputs a tibble of the lowest county FP
 #  in state.
 #
-#
+# param filepath, a file path in char in the format of 
+#  ./STAT 345/STAT_345_S25_FinalProject/Data_Scraping_and_Database/ToReplace_Roads_2023.csv
+#  where ToReplace is replaced with the state names
 ##
-get_state_filepaths <- function() {
+get_state_filepaths <- function(filepath) {
   
   # Create a tibble with state and state_fips
   state_paths <- tibble(
@@ -115,7 +117,7 @@ get_state_filepaths <- function() {
   )
   
   # Original file path
-  original_path <- "./STAT 345/STAT_345_S25_FinalProject/Data_Scraping_and_Database/ToReplace_Roads_2023.csv"
+  original_path <- filepath
   
   # Generate file paths and combine into a tibble
   state_paths <- state_paths |>
@@ -136,12 +138,14 @@ get_state_filepaths <- function() {
 write_all_state_roads <- function(year) {
   
   # Get file paths and State FIPS codes for extraction and writing to .csv
-  States <- get_state_filepaths()
+  states <- get_state_filepaths()
   
   
   
 }
 
+states <- get_state_filepaths("./STAT 345/STAT_345_S25_FinalProject/Data_Scraping_and_Database/ToReplace_Roads_2023.csv")
+states
 
 write_csv(tibble, file = "./STAT 345/STAT_345_S25_FinalProject/Data_Scraping_and_Database/ToReplace_Roads_2023.csv")
 

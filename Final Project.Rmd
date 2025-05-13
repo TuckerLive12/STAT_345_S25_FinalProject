@@ -202,6 +202,17 @@ dat1 <- Alabama_Roads_2023_Backup |>
 #  slice_max(n, n = 1, with_ties = FALSE) |>
 #  print()
 
+dat1 <- Alabama_Roads_2023_Backup |>
+  filter(!is.na(FULLNAME)) |>
+  mutate(SUFFIX = str_extract(FULLNAME, "[:upper:]{1}[:lower:]{0,3}(?:-|\\ )?[:digit:]{0,}$")) |>
+  mutate(SUFFIX = str_extract(SUFFIX, "^[:upper:]{1}[:lower:]{0,3}")) |>
+  mutate(SUFFIX = replace(SUFFIX, is.na(SUFFIX), "Not Applicable")) |>
+  filter(!(SUFFIX == "Not Applicable")) |>
+  group_by(COUNTY_ID) |>
+  count(SUFFIX) |>
+  slice_max(n, n = 1, with_ties = FALSE)
+
+
 ```
 
 

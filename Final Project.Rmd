@@ -157,15 +157,16 @@ counties <- counties(cb = TRUE, resolution = "20m", year = 2024)
 
 counties <- counties(cb = TRUE) #Enters the list of counties into R's memory
 
-#Generates the random sample
-sample <- sample.int(nrow(counties), 10, replace = FALSE)
+#Generates the random sample. Remove this row when you're ready to run the loop for every county.
+#sample <- sample.int(nrow(counties), 10, replace = FALSE)
 
-#Creates the dataframe that the road data will be placed into. For now, it is designed with the intent of creating a random sample because trying to do it for the entire nation would take too long. I've tried. FIPSCode is there to make filtering the territories out of the data easier. We could keep it in the dataframe for this exact purpose.
-Compilation <- data.frame(StateID = counties$STATEFP[sample[1]], CountyID = counties$COUNTYFP[sample[1]], No = 1, State = counties$STATE_NAME[sample[1]], County = counties$NAME[sample[1]])
+#Creates the dataframe that the road data will be placed into. For now, it is designed with the intent of creating a random sample because trying to do it for the entire nation would take too long. I've tried. FIPSCode is there to make filtering the territories out of the data easier. We could keep it in the dataframe for this exact purpose. Remove the [sample[1]] from each reference to the counties dataset when you're ready to run the loop for every county.
+Compilation <- data.frame(StateID = counties$STATEFP, CountyID = counties$COUNTYFP, No = 1, State = counties$STATE_NAME, County = counties$NAME)
 
-for(i in 2:length(sample)) {
-  Compilation <- rbind(Compilation, list(counties$STATEFP[sample[i]], counties$COUNTYFP[sample[i]], i, counties$STATE_NAME[sample[i]], counties$NAME[sample[i]]))
-}
+#This loop adds the random sample to the dataframe. Remove this entire loop when you're ready to run the loop for every county.
+#for(i in 2:length(sample)) {
+  #Compilation <- rbind(Compilation, list(counties$STATEFP[sample[i]], counties$COUNTYFP[sample[i]], i, counties$STATE_NAME[sample[i]], counties$NAME[sample[i]]))
+#}
 
 #Filters out the territories. There is no FIPS Code 59, the state with the highest FIPS code is Wyoming at 58, the territory with the lowest FIPS Code is American Samoa at 60.
 Compilation <- filter(Compilation, StateID < 60)

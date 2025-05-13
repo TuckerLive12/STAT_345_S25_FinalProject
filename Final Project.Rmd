@@ -82,20 +82,20 @@ Part 3:
 ## Code
 
 ```{r Jack Kucera}
-Alabama_Roads_2023 <- read_csv("./Data_Scraping_and_Database/Alabama_Roads_2023.csv", col_types = cols(LINEARID = "c"))
+Alabama_Roads_2023_Backup <- read_csv("./Data_Scraping_and_Database/Alabama_Roads_2023_Backup.csv", col_types = cols(LINEARID = "c"))
 
 # Number of roads per county
-Alabama_Roads_2023 |>
+Alabama_Roads_2023_Backup |>
   count(STATE_ID,COUNTY_ID) |>
   mutate(Num_Roads = n, .keep = "unused") |>
   arrange(COUNTY_ID) 
 
 # Columns of file
-glimpse(Alabama_Roads_2023)
+glimpse(Alabama_Roads_2023_Backup)
 
 # Size of file
 print("")
-Alabama_Roads_2023 |>
+Alabama_Roads_2023_Backup |>
   object.size() |>
   format(units = "auto")
 ```
@@ -157,29 +157,7 @@ counties <- counties(cb = TRUE, resolution = "20m", year = 2024)
 
 counties <- counties(cb = TRUE) #Enters the list of counties into R's memory
 
-
-#Adds all the csv file names into an array to make scraping easier
-
-file_location <- "./Data_Scraping_and_Database/TOREPLACE_Roads_2023.csv"
-
-states <- c(
-  "Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", 
-  "Delaware", "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", 
-  "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan", 
-  "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "NewHampshire", 
-  "NewJersey", "NewMexico", "NewYork", "NorthCarolina", "NorthDakota", "Ohio", 
-  "Oklahoma", "Oregon", "Pennsylvania", "RhodeIsland", "SouthCarolina", "SouthDakota", 
-  "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington", "WestVirginia", 
-  "Wisconsin", "Wyoming"
-)
-
-FileLocation <- rep("Placeholder", length(states))
-
-for (i in 1:length(states)) {
-  FileLocation[i] <- str_replace(file_location, "TOREPLACE", states[i])
-}
-
-get_state_filepaths("./Data_Scraping_and_Database/ToReplace_Roads_2023.csv")
+get_state_filepaths("Data_Scraping_and_Database/ToReplace_Roads_2023.csv")
 
 ```
 
@@ -189,32 +167,73 @@ get_state_filepaths("./Data_Scraping_and_Database/ToReplace_Roads_2023.csv")
 
 
 # Removes as rows where FULLNAME has na. extracts the suffix from FULLNAME and put into new column called SUFFIX. If SUFFIX is na, replaces it with "Not Applicable".
-#dat1 <- Alabama_Roads_2023 |>
-  #filter(!is.na(FULLNAME)) |>
-  #mutate(SUFFIX = str_extract(FULLNAME, "[:upper:]{1}[:lower:]{0,3}(?:-|\\ )?[:digit:]{0,}$")) |>
-  #mutate(SUFFIX = str_extract(SUFFIX, "^[:upper:]{1}[:lower:]{0,3}")) |>
-  #mutate(SUFFIX = replace(SUFFIX, is.na(SUFFIX), "Not Applicable")) |>
-  #filter(!(SUFFIX == "Not Applicable")) |>
-  #group_by(COUNTY_ID) |>
-  #count(SUFFIX) |>
-  #slice_max(n, n = 1, with_ties = FALSE)
+#dat1 <- Alabama_Roads_2023_Backup |>
+#  filter(!is.na(FULLNAME)) |>
+#  mutate(SUFFIX = str_extract(FULLNAME, "[:upper:]{1}[:lower:]{0,3}(?:-|\\ )?[:digit:]{0,}$")) |>
+#  mutate(SUFFIX = str_extract(SUFFIX, "^[:upper:]{1}[:lower:]{0,3}")) |>
+#  mutate(SUFFIX = replace(SUFFIX, is.na(SUFFIX), "Not Applicable")) |>
+#  filter(!(SUFFIX == "Not Applicable")) |>
+#  group_by(COUNTY_ID) |>
+#  count(SUFFIX) |>
+#  slice_max(n, n = 1, with_ties = FALSE)
 
 #bind_rows(dat, dat1)
 
 
 # Shows the highest suffix count for each county, ignores the "Not Applicable" Suffixes.
-#Alabama_Roads_2023 |>
-  #filter(!(SUFFIX == "Not Applicable")) |>
-  #group_by(COUNTY_ID, STATE_ID) |>
-  #count(SUFFIX) |>
-  #slice_max(n, n = 1, with_ties = FALSE) |>
-  #print()
+#Alabama_Roads_2023_Backup |>
+#  filter(!(SUFFIX == "Not Applicable")) |>
+#  group_by(COUNTY_ID, STATE_ID) |>
+#  count(SUFFIX) |>
+#  slice_max(n, n = 1, with_ties = FALSE) |>
+#  print()
 
 ############
 # Create a for loop that goes through each states .csv file and extracts the highest suffix count for each county. combine the highest suffix count into one tibble, keep STATE_ID, COUNTY_ID, SUFFIX, and n (count). I suggest you do this one at a time.  
 ##########
 
+```
+
+
+# Maps 
+```{r}
+
+
+##rename certain columns so everything matches for joins
+dat1 = rename(dat1, COUNTYFP = COUNTY_ID)
+dat1$COUNTYFP <- as.character(dat1$COUNTYFP)
+
+ala_counties <- counties %>% filter(STATEFP == "01")
+ala_counties$COUNTYFP <- sub("^0+", "", ala_counties$COUNTYFP)
+
+dat2 = left_join(ala_counties, dat1, by = "COUNTYFP")
+
+##dat2 is a left join of counties filtered to Alabama(ala_counties) and dat 1 needed to adjust some variable names in order to join  
+## re cast county id column in dat1. countyfp column in counties df are characters while county id are doubles 
+
+dat2_plain <- dat2 %>% st_drop_geometry()
+
+
+ala_map_data <- left_join(ala_counties, dat2_plain, by = "GEOID")
+
+##wouldnt graph properly without above two lines 
+
+ggplot(data = ala_map_data) +
+  geom_sf(aes(fill = SUFFIX), color = "black", size = 0.1) +
+  theme_minimal() +
+  labs(
+    title = "Most Common Road Suffix by County in Alabama",
+    fill = "Road Suffix"
+  ) + ##change title for full map
+  theme(
+    axis.text = element_blank(),
+    axis.ticks = element_blank(),
+    panel.grid = element_blank()
+  )
 
 
 ```
+
+
+
 

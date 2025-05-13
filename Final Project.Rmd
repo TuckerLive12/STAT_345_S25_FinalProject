@@ -157,20 +157,6 @@ counties <- counties(cb = TRUE, resolution = "20m", year = 2024)
 
 counties <- counties(cb = TRUE) #Enters the list of counties into R's memory
 
-#Generates the random sample. Remove this row when you're ready to run the loop for every county.
-#sample <- sample.int(nrow(counties), 10, replace = FALSE)
-
-#Creates the dataframe that the road data will be placed into. For now, it is designed with the intent of creating a random sample because trying to do it for the entire nation would take too long. I've tried. FIPSCode is there to make filtering the territories out of the data easier. We could keep it in the dataframe for this exact purpose. Remove the [sample[1]] from each reference to the counties dataset when you're ready to run the loop for every county.
-Compilation <- data.frame(StateID = counties$STATEFP, CountyID = counties$COUNTYFP, No = 1, State = counties$STATE_NAME, County = counties$NAME)
-
-#This loop adds the random sample to the dataframe. Remove this entire loop when you're ready to run the loop for every county.
-#for(i in 2:length(sample)) {
-  #Compilation <- rbind(Compilation, list(counties$STATEFP[sample[i]], counties$COUNTYFP[sample[i]], i, counties$STATE_NAME[sample[i]], counties$NAME[sample[i]]))
-#}
-
-#Filters out the territories. There is no FIPS Code 59, the state with the highest FIPS code is Wyoming at 58, the territory with the lowest FIPS Code is American Samoa at 60.
-Compilation <- filter(Compilation, StateID < 60)
-
 #Main loop that compiles the data for the number of each type of suffix by county. This is supposed to go up to the number of rows in the counties table, but doing it for all counties takes too long so I decided to make it go up to 10 and pick counties at random instead.
 
 for (i in 1:nrow(Compilation)) {
@@ -233,34 +219,32 @@ for (i in 1:nrow(Compilation)) {
 
 
 # Removes as rows where FULLNAME has na. extracts the suffix from FULLNAME and put into new column called SUFFIX. If SUFFIX is na, replaces it with "Not Applicable".
-dat1 <- Alabama_Roads_2023 |>
-  filter(!is.na(FULLNAME)) |>
-  mutate(SUFFIX = str_extract(FULLNAME, "[:upper:]{1}[:lower:]{0,3}(?:-|\\ )?[:digit:]{0,}$")) |>
-  mutate(SUFFIX = str_extract(SUFFIX, "^[:upper:]{1}[:lower:]{0,3}")) |>
-  mutate(SUFFIX = replace(SUFFIX, is.na(SUFFIX), "Not Applicable")) |>
-  filter(!(SUFFIX == "Not Applicable")) |>
-  group_by(COUNTY_ID) |>
-  count(SUFFIX) |>
-  slice_max(n, n = 1, with_ties = FALSE)
+#dat1 <- Alabama_Roads_2023 |>
+  #filter(!is.na(FULLNAME)) |>
+  #mutate(SUFFIX = str_extract(FULLNAME, "[:upper:]{1}[:lower:]{0,3}(?:-|\\ )?[:digit:]{0,}$")) |>
+  #mutate(SUFFIX = str_extract(SUFFIX, "^[:upper:]{1}[:lower:]{0,3}")) |>
+  #mutate(SUFFIX = replace(SUFFIX, is.na(SUFFIX), "Not Applicable")) |>
+  #filter(!(SUFFIX == "Not Applicable")) |>
+  #group_by(COUNTY_ID) |>
+  #count(SUFFIX) |>
+  #slice_max(n, n = 1, with_ties = FALSE)
 
-bind_rows(dat, dat1)
+#bind_rows(dat, dat1)
 
 
 # Shows the highest suffix count for each county, ignores the "Not Applicable" Suffixes.
-Alabama_Roads_2023 |>
-  filter(!(SUFFIX == "Not Applicable")) |>
-  group_by(COUNTY_ID, STATE_ID) |>
-  count(SUFFIX) |>
-  slice_max(n, n = 1, with_ties = FALSE) |>
-  print()
+#Alabama_Roads_2023 |>
+  #filter(!(SUFFIX == "Not Applicable")) |>
+  #group_by(COUNTY_ID, STATE_ID) |>
+  #count(SUFFIX) |>
+  #slice_max(n, n = 1, with_ties = FALSE) |>
+  #print()
 
 ############
 # Create a for loop that goes through each states .csv file and extracts the highest suffix count for each county. combine the highest suffix count into one tibble, keep STATE_ID, COUNTY_ID, SUFFIX, and n (count). I suggest you do this one at a time.  
 ##########
 
 file_location <- "./Data_Scraping_and_Database/TOREPLACE_Roads_2023.csv"
-
-str_replace(file_location, Regular_expression, list[1])
 
 states <- c(
   "Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", 
@@ -272,6 +256,13 @@ states <- c(
   "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington", "WestVirginia", 
   "Wisconsin", "Wyoming"
 )
+
+FileLocation <- rep("Placeholder", length(states))
+
+for (i in 1:length(states)) {
+  FileLocation[i] <- str_replace(file_location, "TOREPLACE", states[i])
+  dat <- read.csv()
+}
 
 
 

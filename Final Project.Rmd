@@ -82,7 +82,7 @@ Part 3:
 ## Code
 
 ```{r Jack Kucera}
-Alabama_Roads_2023_Backup <- read_csv("./Data_Scraping_and_Database/Alabama_Roads_2023_Backup_Backup.csv", col_types = cols(LINEARID = "c"))
+Alabama_Roads_2023_Backup <- read_csv("./Data_Scraping_and_Database/Alabama_Roads_2023_Backup.csv", col_types = cols(LINEARID = "c"))
 
 # Number of roads per county
 Alabama_Roads_2023_Backup |>
@@ -284,13 +284,15 @@ states <- c(
 ##may need to rename certain columns so everything matches for joins
 
 
+ala_counties <- counties %>% filter(STATEFP == "01")
+
+
 ## makes a key for each county to be identified
 counties$GEOID <- paste0(counties$STATEFP, counties$COUNTYFP)
 dat2$GEOID <- paste0(dat2$STATEFP, dat2$COUNTYFP)
 
 
 
-ala_counties <- counties %>% filter(STATEFP == "01")
 
 ##dat2 is a left join of counties filtered to Alabama(ala_counties) and dat 1 needed to adjust some variable names in order to join  
 ##may need to re cast county id column in dat1. countyfp column in counties df are characters while county id are doubles 

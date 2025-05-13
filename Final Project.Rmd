@@ -142,6 +142,10 @@ counties <- counties(cb = TRUE, resolution = "20m", year = 2024)
 
 # Adam's Work
 
+###
+# Important, I'm going to change COUNTY_ID to COUNTYFP for consististy. 
+##
+
 ## Code
 
 ```{r Adam}
@@ -226,6 +230,50 @@ for (i in 1:nrow(Compilation)) {
 ## Comments
 
 ```{r}
+
+
+# Removes as rows where FULLNAME has na. extracts the suffix from FULLNAME and put into new column called SUFFIX. If SUFFIX is na, replaces it with "Not Applicable".
+dat1 <- Alabama_Roads_2023 |>
+  filter(!is.na(FULLNAME)) |>
+  mutate(SUFFIX = str_extract(FULLNAME, "[:upper:]{1}[:lower:]{0,3}(?:-|\\ )?[:digit:]{0,}$")) |>
+  mutate(SUFFIX = str_extract(SUFFIX, "^[:upper:]{1}[:lower:]{0,3}")) |>
+  mutate(SUFFIX = replace(SUFFIX, is.na(SUFFIX), "Not Applicable")) |>
+  filter(!(SUFFIX == "Not Applicable")) |>
+  group_by(COUNTY_ID) |>
+  count(SUFFIX) |>
+  slice_max(n, n = 1, with_ties = FALSE)
+
+bind_rows(dat, dat1)
+
+
+# Shows the highest suffix count for each county, ignores the "Not Applicable" Suffixes.
+Alabama_Roads_2023 |>
+  filter(!(SUFFIX == "Not Applicable")) |>
+  group_by(COUNTY_ID, STATE_ID) |>
+  count(SUFFIX) |>
+  slice_max(n, n = 1, with_ties = FALSE) |>
+  print()
+
+############
+# Create a for loop that goes through each states .csv file and extracts the highest suffix count for each county. combine the highest suffix count into one tibble, keep STATE_ID, COUNTY_ID, SUFFIX, and n (count). I suggest you do this one at a time.  
+##########
+
+file_location <- "./Data_Scraping_and_Database/TOREPLACE_Roads_2023.csv"
+
+str_replace(file_location, Regular_expression, list[1])
+
+states <- c(
+  "Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", 
+  "Delaware", "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", 
+  "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan", 
+  "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "NewHampshire", 
+  "NewJersey", "NewMexico", "NewYork", "NorthCarolina", "NorthDakota", "Ohio", 
+  "Oklahoma", "Oregon", "Pennsylvania", "RhodeIsland", "SouthCarolina", "SouthDakota", 
+  "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington", "WestVirginia", 
+  "Wisconsin", "Wyoming"
+)
+
+
 
 ```
 

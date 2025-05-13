@@ -12,15 +12,15 @@ library(sf)
 ################################################
 
 
-# Highest county FP is 840
+# Function summary comments done by Grok
 
-##
-# Helper function for get_state_roads
-#  Takes in the year and state and outputs a tibble of the lowest county FP
-#  in state.
-#
-#
-##
+#' Get County FIPS Codes for a State
+#'
+#' Retrieves the FIPS codes for counties in a specified state and year.
+#'
+#' @param state The state for which to retrieve county FIPS codes (numeric or charactor).
+#' @param year The year for the data (numeric or charactor).
+#' @return A character vector of county FIPS codes.
 get_county_fips <- function(state, year) {
   
   counties <- counties(state = state, year = year) |>
@@ -29,16 +29,21 @@ get_county_fips <- function(state, year) {
   return(counties$COUNTYFP[1:5]) # REMOBER TO REMOVE [1:5]
 }
 
-##
-# Takes in the year and state and outputs a tibble that has the county ID, year, ...
-#
-# param state_fips, a ...
-# param year, 
-##
+#' Retrieve Road Data for a State
+#'
+#' Downloads road data for all counties in a specified state and year, combining them into a single tibble.
+#'
+#' @param state The state for which to retrieve road data (numeric or character, typically a FIPS code).
+#' @param year The year for the road data (numeric or character).
+#' @return A tibble containing road data for the specified state, with columns for LINEARID, FULLNAME, RTTYP, 
+#'  MTFCC, COUNTYFP, STATE_ID, and YEAR.
 get_state_roads <- function(state, year) {
   
   # Getting all the countyFIPS to get the roads in each county
   county_FIPS <- get_county_fips(state = state, year = year) 
+  
+  # Helpful printout
+  print(paste("Downloading state", state, ", county", county_FIPS[1], "."))
   
   # Create a tibble with the first county's roads in it.
   #  Necessary because bind_rows() does not work if the first argument is null
@@ -55,6 +60,9 @@ get_state_roads <- function(state, year) {
   # Go through all county fips in state, extracts the road data using roads(),
   #  and add them to tibble using bind_rows().
   for (i in 2:(length(county_FIPS))) {
+    
+    # Helpful printout
+    print(paste("Downloading state", state, ", county", county_FIPS[i], "."))
     
     # (Grok) Initialize dat to NULL to avoid undefined variable and memory issues
     dat <- NULL
@@ -83,15 +91,12 @@ get_state_roads <- function(state, year) {
   return(to_return)
 }
 
-##
-# Helper function for get_state_roads
-#  Takes in the year and state and outputs a tibble of the lowest county FP
-#  in state.
-#
-# param filepath, a file path in char in the format of 
-#  ./STAT 345/STAT_345_S25_FinalProject/Data_Scraping_and_Database/ToReplace_Roads_2023.csv
-#  where ToReplace is replaced with the state names
-##
+#' Generate File Paths for State Road Data
+#'
+#' Creates a tibble with state names, FIPS codes, and corresponding file paths for road data files.
+#'
+#' @param filepath A character string representing the file path template, with "ToReplace" as a placeholder for state names.
+#' @return A tibble with columns: state (state names), fips (state FIPS codes), and file_path (file paths for road data).
 get_state_filepaths <- function(filepath) {
   
   # Create a tibble with state and state_fips
@@ -128,42 +133,49 @@ get_state_filepaths <- function(filepath) {
   return(state_paths)
 }
 
-##
-# Helper function for get_state_roads
-#  Takes in the year and state and outputs a tibble of the lowest county FP
-#  in state.
-#
-#
-##
-write_all_state_roads <- function(year) {
+#' Write Road Data for All States to CSV Files
+#'
+#' Downloads road data for each state and writes it to separate CSV files, managing memory by removing data after writing.
+#'
+#' @param filepath A character string representing the file path template for saving road data, with "ToReplace" as a placeholder.
+#' @param year The year for the road data (numeric or character).
+#' @return None. The function writes CSV files to the specified file paths.
+write_all_state_roads <- function(filepath, year) {
   
   # Get file paths and State FIPS codes for extraction and writing to .csv
-  states <- get_state_filepaths()
+  states <- get_state_filepaths(filepath)
   
-  
+  # Go through all states (FIPS codes) and extracts the road data
+  #  then it writes that road data to .csv and removes it from memory
+  for(i in 1:(nrow(states)-47)) { #DONT FORGET TO REMOVE -45
+    
+    # Gets a tibble of all the roads in that state
+    tibble <- get_state_roads(as.numeric(states$fips[i]), year = year)
+    
+    # writes that tibble to the folder with the file_path column
+    write_csv(tibble, file = states$file_path[i])
+    
+    # Removes tibble from memory
+    rm(tibble)
+    
+  }
   
 }
 
-states <- get_state_filepaths("./STAT 345/STAT_345_S25_FinalProject/Data_Scraping_and_Database/ToReplace_Roads_2023.csv")
-states
+write_all_state_roads("./Data_Scraping_and_Database/ToReplace_Roads_2023.csv",2023)
 
-write_csv(tibble, file = "./STAT 345/STAT_345_S25_FinalProject/Data_Scraping_and_Database/ToReplace_Roads_2023.csv")
-
-Alabama_Roads_2023 <- tibble
 
 
 
 
 
 # Some checking commands
-identical(unique(tibble$LINEARID), tibble$LINEARID)
-format(object.size(tibble), units = "auto")
+#identical(unique(tibble$LINEARID), tibble$LINEARID)
+#format(object.size(tibble), units = "auto")
 
-tibble |>
-  count(STATE_ID, YEAR, COUNTY_ID)
-glimpse(tibble)
-
-
+#tibble |>
+#  count(STATE_ID, YEAR, COUNTY_ID)
+#glimpse(tibble)
 
 
 
@@ -172,55 +184,4 @@ glimpse(tibble)
 
 
 
-
-## FUNCTION TO KEEP JUST IN CASE.
-
-##
-# Takes in the year and state and outputs a tibble that has the county ID, year, ...
-#
-# param tibble, a ...
-##
-get_state_roads <- function(tibble, state, county, year) {
-  
-  # If tibble is NULL, call function get_first_county_roads to get the needed tibble.
-  if (is.null(tibble)) {
-    tibble <- get_first_county_roads(state,year)
-  }
-  
-  # (Grok) Initialize dat to NULL to avoid undefined variable issues
-  dat <- NULL
-  
-  # Try to fetch road data
-  tryCatch(
-    {
-      dat <- roads(state = state, county = county, year = year)
-    },
-    error = function(e) {
-      # Return input tibble unchanged on error
-      return(tibble)
-    },
-    warning = function(w) {
-      # Return input tibble unchanged on warning
-      return(tibble)
-    }
-  )
-  
-  # (Grok) Only proceed if dat is not NULL (i.e., no error/warning occurred) 
-  if (!is.null(dat)) {
-    dat <- dat |>
-      st_drop_geometry() |>
-      mutate(
-        COUNTY_ID = as.character(county),
-        STATE_ID = as.character(state),
-        YEAR = as.character(year)  # Ensure consistent type
-      ) 
-    
-    
-    # Combine tibbles
-    return(bind_rows(tibble, dat))
-  }
-  
-  # (Grok) Fallback: return input tibble if dat is NULL
-  return(tibble)
-}
 

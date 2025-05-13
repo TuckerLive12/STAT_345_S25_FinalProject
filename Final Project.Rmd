@@ -188,10 +188,6 @@ get_state_filepaths("Data_Scraping_and_Database/ToReplace_Roads_2023.csv")
 #  slice_max(n, n = 1, with_ties = FALSE) |>
 #  print()
 
-############
-# Create a for loop that goes through each states .csv file and extracts the highest suffix count for each county. combine the highest suffix count into one tibble, keep STATE_ID, COUNTY_ID, SUFFIX, and n (count). I suggest you do this one at a time.  
-##########
-
 ```
 
 

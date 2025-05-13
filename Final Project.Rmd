@@ -194,21 +194,18 @@ get_state_filepaths("Data_Scraping_and_Database/ToReplace_Roads_2023.csv")
 # Maps 
 ```{r}
 
-##may need to rename certain columns so everything matches for joins
 
+##rename certain columns so everything matches for joins
+dat1 = rename(dat1, COUNTYFP = COUNTY_ID)
+dat1$COUNTYFP <- as.character(dat1$COUNTYFP)
 
 ala_counties <- counties %>% filter(STATEFP == "01")
+ala_counties$COUNTYFP <- sub("^0+", "", ala_counties$COUNTYFP)
 
-
-## makes a key for each county to be identified
-counties$GEOID <- paste0(counties$STATEFP, counties$COUNTYFP)
-dat2$GEOID <- paste0(dat2$STATEFP, dat2$COUNTYFP)
-
-
-
+dat2 = left_join(ala_counties, dat1, by = "COUNTYFP")
 
 ##dat2 is a left join of counties filtered to Alabama(ala_counties) and dat 1 needed to adjust some variable names in order to join  
-##may need to re cast county id column in dat1. countyfp column in counties df are characters while county id are doubles 
+## re cast county id column in dat1. countyfp column in counties df are characters while county id are doubles 
 
 dat2_plain <- dat2 %>% st_drop_geometry()
 
@@ -229,6 +226,7 @@ ggplot(data = ala_map_data) +
     axis.ticks = element_blank(),
     panel.grid = element_blank()
   )
+
 
 ```
 

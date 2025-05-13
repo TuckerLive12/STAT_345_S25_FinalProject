@@ -179,6 +179,8 @@ for (i in 1:length(states)) {
   FileLocation[i] <- str_replace(file_location, "TOREPLACE", states[i])
 }
 
+get_state_filepaths("./Data_Scraping_and_Database/ToReplace_Roads_2023.csv")
+
 ```
 
 ## Comments

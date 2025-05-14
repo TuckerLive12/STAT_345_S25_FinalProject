@@ -159,18 +159,28 @@ counties <- counties(cb = TRUE) #Enters the list of counties into R's memory
 
 Filepaths <- get_state_filepaths("Data_Scraping_and_Database/ToReplace_Roads_2023.csv")
 
-Compilation <- data.frame(COUNTYFP = counties$COUNTYFP, STATEFP = counties$STATEFP, MOSTFREQUENT = rep("Placeholder", nrow(counties)), N = rep(0, nrow(counties)))
+Compilation <- data.frame(COUNTYFP = counties$COUNTYFP, STATE_ID = counties$STATEFP, MOSTFREQUENT = rep("Placeholder", nrow(counties)), N = rep(0, nrow(counties))) |>
+  mutate(COUNTYFP = as.numeric(COUNTYFP)) |>
+  mutate(STATE_ID = as.numeric(STATE_ID)) |>
+  #Filters out territories and DC. The territories all have STATE_ID values that are 60 or higher and DC has a STATE_ID of 11
+  filter(STATE_ID < 60 & STATE_ID != 11)
 
-for (i in 1:1) {
-  data <- read.csv("Data_Scraping_and_Database/Alabama_Roads_2023_Backup.csv") |>
+for (i in 1:8) {
+  data <- read.csv(Filepaths$file_path[i]) |>
+    mutate(COUNTYFP = as.numeric(COUNTYFP)) |>
+    mutate(STATE_ID = as.numeric(STATE_ID)) |>
     filter(!is.na(FULLNAME)) |>
     mutate(SUFFIX = str_extract(FULLNAME, "[:upper:]{1}[:lower:]{0,3}(?:-|\\ )?[:digit:]{0,}$")) |>
     mutate(SUFFIX = str_extract(SUFFIX, "^[:upper:]{1}[:lower:]{0,3}")) |>
-    mutate(SUFFIX = replace(SUFFIX, is.na(SUFFIX), "Not Applicable")) |>
-    filter(!(SUFFIX == "Not Applicable")) |>
-    group_by(COUNTY_ID, STATE_ID) |>
+    filter(!is.na(SUFFIX)) |>
+    group_by(COUNTYFP, STATE_ID) |>
     count(SUFFIX) |>
-    slice_max(N, N = 1, with_ties = FALSE)
+    slice_max(n, n = 1, with_ties = FALSE)
+  for (j in 1:nrow(data)) {
+    x <- which(Compilation$COUNTYFP == data$COUNTYFP[j] & Compilation$STATE_ID == data$STATE_ID[j])
+    Compilation$MOSTFREQUENT[x] <- data$SUFFIX[j]
+    Compilation$N[x] <- data$n[j]
+  }
 }
 
 ```

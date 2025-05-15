@@ -203,10 +203,10 @@ Compilation1 <- Compilation |>
 dat1 = Compilation1  #rename(dat1, COUNTYFP = COUNTY_ID)
 dat1$COUNTYFP <- as.character(dat1$COUNTYFP)
 
-ala_counties <- counties %>% filter(STATEFP == "01")
-ala_counties$COUNTYFP <- sub("^0+", "", ala_counties$COUNTYFP)
 
-dat2 = left_join(ala_counties, dat1, by = "COUNTYFP")
+counties$COUNTYFP <- sub("^0+", "", counties$COUNTYFP)
+
+dat2 = left_join(counties, dat1, by = "COUNTYFP")
 
 ##dat2 is a left join of counties filtered to Alabama(ala_counties) and dat 1 needed to adjust some variable names in order to join  
 ## re cast county id column in dat1. countyfp column in counties df are characters while county id are doubles 
@@ -214,15 +214,15 @@ dat2 = left_join(ala_counties, dat1, by = "COUNTYFP")
 dat2_plain <- dat2 %>% st_drop_geometry()
 
 
-ala_map_data <- left_join(ala_counties, dat2_plain, by = "GEOID")
+map_data <- left_join(counties, dat2_plain, by = "GEOID")
 
 ##wouldnt graph properly without above two lines 
 
-ggplot(data = ala_map_data) +
-  geom_sf(aes(fill = MOSTFREQUENT), color = "black", size = 0.1) +
+c = ggplot(data = map_data) +
+  geom_sf(aes(fill = MOSTFREQUENT), color = "white", size = 0.1) +
   theme_minimal() +
   labs(
-    title = "Most Common Road Suffix by County in Alabama",
+    title = "Most Common Road Suffix by County",
     fill = "Road Suffix"
   ) + ##change title for full map
   theme(
@@ -230,7 +230,9 @@ ggplot(data = ala_map_data) +
     axis.ticks = element_blank(),
     panel.grid = element_blank()
   )
-
+ ggsave("most_common_road_suffix_by_county.png", plot = c, width = 32, height = 20, dpi = 600)
+ print(c)
+ ## map with every county
 
 ```
 

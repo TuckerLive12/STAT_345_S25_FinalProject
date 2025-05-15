@@ -149,24 +149,25 @@ counties <- counties(cb = TRUE, resolution = "20m", year = 2024)
 ## Code
 
 ```{r Adam}
+# I changed this so that we can have the top 5 most frequent suffixes
+
 
 
 #use ?tigris to pull up the github page with the descriptions of all the functions, use those functions to create the list of road suffixes
 
 #We could have a function that goes through the list of state and county FIPS codes (STATEFP & COUNTYFP) in the counties table and gives the list of roads in that particular county. We could make it a loop that opens a particular road dataset, allows us to collect the required data, then removes the dataset from the environment so we can do it again for the next dataset.
 
-counties <- counties(cb = TRUE, year = 2023) #Enters the list of counties into R's memory
+# counties <- counties(cb = TRUE, year = 2023) #Enters the list of counties into R's memory
 
 Filepaths <- get_state_filepaths("Data_Scraping_and_Database/ToReplace_Roads_2023.csv")
 
-Compilation <- data.frame(COUNTYFP = counties$COUNTYFP, STATE_ID = counties$STATEFP, MOSTFREQUENT = rep("Placeholder", nrow(counties)), N = rep(0, nrow(counties))) |>
-  mutate(COUNTYFP = as.numeric(COUNTYFP)) |>
-  mutate(STATE_ID = as.numeric(STATE_ID)) |>
+#Compilation <- data.frame(COUNTYFP = counties$COUNTYFP, STATE_ID = counties$STATEFP, MOSTFREQUENT = rep("Placeholder", nrow(counties)), N = rep(0, nrow(counties))) |>
+  #mutate(COUNTYFP = as.numeric(COUNTYFP)) |>
+  #mutate(STATE_ID = as.numeric(STATE_ID)) |>
   #Filters out territories and DC. The territories all have STATE_ID values that are 60 or higher and DC has a STATE_ID of 11
-  filter(STATE_ID < 60 & STATE_ID != 11)
+  #filter(STATE_ID < 60 & STATE_ID != 11)
 
-for (i in 1:50) {
-  data <- read.csv(Filepaths$file_path[i]) |>
+Compilation <- read_csv(Filepaths$file_path[1]) |>
     mutate(COUNTYFP = as.numeric(COUNTYFP)) |>
     mutate(STATE_ID = as.numeric(STATE_ID)) |>
     filter(!is.na(FULLNAME)) |>
@@ -175,20 +176,30 @@ for (i in 1:50) {
     filter(!is.na(SUFFIX)) |>
     group_by(COUNTYFP, STATE_ID) |>
     count(SUFFIX) |>
-    slice_max(n, n = 2, with_ties = FALSE)
+    slice_max(n, n = 5, with_ties = FALSE)
+
+for (i in 2:50) {
+  data <- read_csv(Filepaths$file_path[i], col_types = "c",) |>
+    mutate(COUNTYFP = as.numeric(COUNTYFP)) |>
+    mutate(STATE_ID = as.numeric(STATE_ID)) |>
+    filter(!is.na(FULLNAME)) |>
+    mutate(SUFFIX = str_extract(FULLNAME, "[:upper:]{1}[:lower:]{0,3}(?:-|\\ )?[:digit:]{0,}$")) |>
+    mutate(SUFFIX = str_extract(SUFFIX, "^[:upper:]{1}[:lower:]{0,3}")) |>
+    filter(!is.na(SUFFIX)) |>
+    group_by(COUNTYFP, STATE_ID) |>
+    count(SUFFIX) |>
+    slice_max(n, n = 5, with_ties = FALSE)
   
   # Helpful print out
   print(paste0("Extracting state ", Filepaths$state[i]))
   
-  for (j in 1:nrow(data)) {
-    x <- which(Compilation$COUNTYFP == data$COUNTYFP[j] & Compilation$STATE_ID == data$STATE_ID[j])
-    Compilation$MOSTFREQUENT[x] <- data$SUFFIX[j]
-    Compilation$N[x] <- data$n[j]
-  }
+  bind_rows(Compilation, data)
+  
+  data <- NULL
   
   
 }
-
+gc()
 ```
 
 ## Comments
@@ -197,7 +208,10 @@ for (i in 1:50) {
 # Maps 
 ```{r}
 Compilation1 <- Compilation |>
-  filter(!(MOSTFREQUENT %in% c("Ar", "Cir", "Cr", "Fs", "Gove", "K", "Lake", "Liv", "Lr", "P", "Pl", "Pvt", "R", "Road", "S", "Sfc", "T", "Trl", "Way")))
+  group_by(STATE_ID, COUNTYFP) |>
+  slice_max(n, n = 1, with_ties = FALSE) |>
+  filter(!(SUFFIX %in% c("Ar", "Cir", "Cr", "Fs", "Gove", "K", "Lake", "Liv", "Lr", "P", "Pl", "Pvt", "R", "Road", "S", "Sfc", "T", "Trl", "Way")))
+
 
 ##rename certain columns so everything matches for joins
 dat1 = Compilation1  #rename(dat1, COUNTYFP = COUNTY_ID)
@@ -219,7 +233,7 @@ ala_map_data <- left_join(ala_counties, dat2_plain, by = "GEOID")
 ##wouldnt graph properly without above two lines 
 
 ggplot(data = ala_map_data) +
-  geom_sf(aes(fill = MOSTFREQUENT), color = "black", size = 0.1) +
+  geom_sf(aes(fill = SUFFIX), color = "black", size = 0.1) +
   theme_minimal() +
   labs(
     title = "Most Common Road Suffix by County in Alabama",
@@ -240,14 +254,35 @@ ggplot(data = ala_map_data) +
 Compilation |>
   count(MOSTFREQUENT) |>
   filter(n < 10) |>
-  print(n = 50)
+  print()
 
 
 Compilation |>
+  slice_max(N, n = 1, with_ties = FALSE) |>
   filter(MOSTFREQUENT %in% c("Ar", "Cir", "Cr", "Fs", "Gove", "Hwy", "K", "Lake", "Liv", "Lr", "P", "Pl", "Pvt", "R", "Road", "Rte", "S", "Sfc", "T", "Trl", "Way")) |>
   arrange(MOSTFREQUENT)
 
+Compilation |>
+  filter(MOSTFREQUENT %in% c("Aa", "Alt", "Aly", "Area", "Ash", "Base", "Bcr", "Blm", "Cs", "D", "Dd", "Dove", "Drum", "Ee", "Ew", "Expy", "Eye", "F", "Farm", "Fork", "G", "Gate", "H", "Hcr", "Hh", "Hts", "Hu", "I", "J", "L", "La", "Lane", "Lobo", "No", "Ns", "Null", "P", "Park", "Path", "Pfrd", "Pp", "Pr", "Pvt", "R", "Rdg", "Road", "Row", "Run", "Scr", "Sd", "Spur", "Sq", "Ter", "Tpke", "U", "V", "Xing", "Y")) |>
+  count(MOSTFREQUENT) |>
+  arrange(n)
+
+Compilation |>
+  count(MOSTFREQUENT)
+
 dat <- read_csv("Data_Scraping_and_Database/Oregon_Roads_2023.csv", col_types = cols(LINEARID = "c") )
+
+dat |>
+    mutate(COUNTYFP = as.numeric(COUNTYFP)) |>
+    mutate(STATE_ID = as.numeric(STATE_ID)) |>
+    filter(!is.na(FULLNAME)) |>
+    mutate(SUFFIX = str_extract(FULLNAME, "[:upper:]{1}[:lower:]{0,3}(?:-|\\ )?[:digit:]{0,}$")) |>
+    mutate(SUFFIX = str_extract(SUFFIX, "^[:upper:]{1}[:lower:]{0,3}")) |>
+    filter(!is.na(SUFFIX)) |>
+    group_by(COUNTYFP, STATE_ID) |>
+    count(SUFFIX) |>
+    slice_max(n, n = 5, with_ties = FALSE) |>
+    
 
 dat |>
   filter(COUNTYFP == "035") |>

@@ -1,5 +1,8 @@
-library(tigris)
 library(tidyverse)
+library(foreign)
+library(tigris)
+library(usethis) # GitHub
+library(gitcreds) # GitHub
 library(sf)
 
 ################################################
@@ -42,7 +45,7 @@ get_state_roads <- function(state, year) {
   county_FIPS <- get_county_fips(state = state, year = year) 
   
   # Helpful printout
-  print(paste("Downloading state", state, "county", county_FIPS[1], "."))
+  print(paste("Downloading state", state, "county", county_FIPS[1]))
   
   # Create a tibble with the first county's roads in it.
   #  Necessary because bind_rows() does not work if the first argument is null
@@ -61,7 +64,7 @@ get_state_roads <- function(state, year) {
   for (i in 2:(length(county_FIPS))) {
     
     # Helpful printout
-    print(paste("Downloading state", state, "county", county_FIPS[i], "."))
+    print(paste("Downloading state", state, "county", county_FIPS[i]))
     
     # (Grok) Initialize dat to NULL to avoid undefined variable and memory issues
     dat <- NULL
@@ -135,17 +138,21 @@ get_state_filepaths <- function(filepath) {
 #' Write Road Data for All States to CSV Files
 #'
 #' Downloads road data for specified states and writes it to separate CSV files, managing memory by removing data after writing.
+#'  Downloads in acceding order.
 #'
 #' @param filepath A character string representing the file path template for saving road data, with "ToReplace" as a placeholder (e.g., "./Data_Scraping_and_Database/ToReplace_Roads_2023.csv").
 #' @param year The year for the road data (numeric or character).
 #' @param states A numeric vector of state indices (1 to 50) or 0 to download all states. Default is 0.
 #' @return None. The function writes CSV files to the specified file paths.
-write_all_state_roads <- function(filepath, year, states = 0) {
+write_state_roads <- function(filepath, year, states = 0) {
   
-  # Check if states = 0, if so download all states (1:50)
-  if (states == 0) {
-    states = 1:50
-  }
+  # Check if staes is asingle vector (to check next if statement)
+  if (length(states) == 1) {
+    # Check if states = 0, if so download all states (1:50)
+    if (states == 0) {
+      states = 1:50
+    }
+  }  
   
   # Get file paths and State FIPS codes for extraction and writing to .csv
   statesFIPS_filepath <- get_state_filepaths(filepath)
@@ -155,24 +162,27 @@ write_all_state_roads <- function(filepath, year, states = 0) {
   for(i in 1:(length(states))) { 
     
     # Gets a tibble of all the roads in that state
-    tibble <- get_state_roads(statesFIPS_filepath$fips[states], year = year)
+    tibble <- get_state_roads(statesFIPS_filepath$fips[states[i]], year = year)
     
     # writes that tibble to the folder with the file_path column
-    write_csv(tibble, file = statesFIPS_filepath$file_path[i])
+    write_csv(tibble, file = statesFIPS_filepath$file_path[states[i]])
     
     # Removes tibble from memory
     rm(tibble)
     
     # Clearing unused memory
     gc()
+    
+    # Helpful printout
+    print(paste0("Done writing state ", states[i]))
   }
   
   # A nice printout
   print("Done Downloading!")
 }
 
-# Downloaded the first 4 states roads
-write_all_state_roads("./Data_Scraping_and_Database/ToReplace_Roads_2023.csv",2023,5)
+# Downloaded 50 state's roads
+write_state_roads("./Data_Scraping_and_Database/ToReplace_Roads_2023.csv",2023,0)
 
 
 

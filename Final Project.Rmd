@@ -193,7 +193,7 @@ for (i in 2:50) {
   # Helpful print out
   print(paste0("Extracting state ", Filepaths$state[i]))
   
-  bind_rows(Compilation, data)
+  Compilation <- bind_rows(Compilation, data)
   
   data <- NULL
   
@@ -204,13 +204,30 @@ gc()
 
 ## Comments
 
+```{r}
+Compilation1 <- Compilation |>
+  group_by(STATE_ID, COUNTYFP) |>
+  slice_max(n, n = 1, with_ties = FALSE) |>
+  # Removes any most frequent suffix thats in less than 5 counties
+  filter(!(SUFFIX %in% c("Ar", "Cir", "Cr", "Fs", "Gove", "K", "Lake", "Liv", "Lr", "P", "Pl", "Pvt", "R", "Road", "S", "Sfc", "T", "Trl", "Way"))) |>
+  ungroup()
+
+Compilation2 <- Compilation |>
+  group_by(STATE_ID, COUNTYFP) |>
+  slice_max(n, n = 2, with_ties = FALSE) |>
+  slice_tail() |>
+  filter(!(SUFFIX %in% c("A", "Aly", "Area", "C", "Cir", "Cs", "Cv", "Dade", "Ew", "Fr", "Lcr", "Lk", "Nc", "Ns", "Off", "P", "Pcr", "Pike", "Pl", "Pt", "Pvt", "R", "Road", "Run", "Sp", "Tc", "Ter", "Trl", "Usfs", "Ut", "Way"))) |>
+  ungroup()
+```
+
 
 # Maps 
 ```{r}
 Compilation1 <- Compilation |>
   group_by(STATE_ID, COUNTYFP) |>
   slice_max(n, n = 1, with_ties = FALSE) |>
-  filter(!(SUFFIX %in% c("Ar", "Cir", "Cr", "Fs", "Gove", "K", "Lake", "Liv", "Lr", "P", "Pl", "Pvt", "R", "Road", "S", "Sfc", "T", "Trl", "Way")))
+  # Removes any most frequent suffix thats in less than 5 counties
+  filter(!(SUFFIX %in% c("Ar", "Cir", "Cr", "Fs", "Gove", "Hwy", "K", "Lake", "Liv", "Lr", "P", "Pl", "Pvt", "R", "Road", "Rte", "S", "Sfc", "T", "Trl", "Way")))
 
 
 ##rename certain columns so everything matches for joins
@@ -258,24 +275,41 @@ c = ggplot(data = map_data) +
 
 
 ```{r Testing Code}
+Compilation2 <- Compilation |>
+  group_by(STATE_ID, COUNTYFP) |>
+  slice_max(n, n = 2, with_ties = FALSE) |>
+  slice_tail() |>
+  ungroup()
+
+Compilation2 |>
+  count(SUFFIX) |>
+  filter(n < 10) |>
+  print()
+
+Compilation2 |>
+  count(SUFFIX)
+
 Compilation |>
-  count(MOSTFREQUENT) |>
+  ungroup() |>
+  count(STATE_ID)
+  
+  count(SUFFIX) |>
   filter(n < 10) |>
   print()
 
 
 Compilation |>
   slice_max(N, n = 1, with_ties = FALSE) |>
-  filter(MOSTFREQUENT %in% c("Ar", "Cir", "Cr", "Fs", "Gove", "Hwy", "K", "Lake", "Liv", "Lr", "P", "Pl", "Pvt", "R", "Road", "Rte", "S", "Sfc", "T", "Trl", "Way")) |>
-  arrange(MOSTFREQUENT)
+  filter(SUFFIX %in% c("Ar", "Cir", "Cr", "Fs", "Gove", "Hwy", "K", "Lake", "Liv", "Lr", "P", "Pl", "Pvt", "R", "Road", "Rte", "S", "Sfc", "T", "Trl", "Way")) |>
+  arrange(SUFFIX)
 
 Compilation |>
-  filter(MOSTFREQUENT %in% c("Aa", "Alt", "Aly", "Area", "Ash", "Base", "Bcr", "Blm", "Cs", "D", "Dd", "Dove", "Drum", "Ee", "Ew", "Expy", "Eye", "F", "Farm", "Fork", "G", "Gate", "H", "Hcr", "Hh", "Hts", "Hu", "I", "J", "L", "La", "Lane", "Lobo", "No", "Ns", "Null", "P", "Park", "Path", "Pfrd", "Pp", "Pr", "Pvt", "R", "Rdg", "Road", "Row", "Run", "Scr", "Sd", "Spur", "Sq", "Ter", "Tpke", "U", "V", "Xing", "Y")) |>
-  count(MOSTFREQUENT) |>
+  filter(SUFFIX %in% c("Aa", "Alt", "Aly", "Area", "Ash", "Base", "Bcr", "Blm", "Cs", "D", "Dd", "Dove", "Drum", "Ee", "Ew", "Expy", "Eye", "F", "Farm", "Fork", "G", "Gate", "H", "Hcr", "Hh", "Hts", "Hu", "I", "J", "L", "La", "Lane", "Lobo", "No", "Ns", "Null", "P", "Park", "Path", "Pfrd", "Pp", "Pr", "Pvt", "R", "Rdg", "Road", "Row", "Run", "Scr", "Sd", "Spur", "Sq", "Ter", "Tpke", "U", "V", "Xing", "Y")) |>
+  count(SUFFIX) |>
   arrange(n)
 
 Compilation |>
-  count(MOSTFREQUENT)
+  count(SUFFIX)
 
 dat <- read_csv("Data_Scraping_and_Database/Oregon_Roads_2023.csv", col_types = cols(LINEARID = "c") )
 

@@ -234,10 +234,11 @@ dat1 <- Alabama_Roads_2023_Backup |>
 
 # Maps 
 ```{r}
-
+Compilation1 <- Compilation |>
+  filter(!(MOSTFREQUENT %in% c("Ar", "Cir", "Cr", "Fs", "Gove", "K", "Lake", "Liv", "Lr", "P", "Pl", "Pvt", "R", "Road", "S", "Sfc", "T", "Trl", "Way")))
 
 ##rename certain columns so everything matches for joins
-dat1 = Compilation  #rename(dat1, COUNTYFP = COUNTY_ID)
+dat1 = Compilation1  #rename(dat1, COUNTYFP = COUNTY_ID)
 dat1$COUNTYFP <- as.character(dat1$COUNTYFP)
 
 ala_counties <- counties %>% filter(STATEFP == "01")

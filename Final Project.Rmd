@@ -155,7 +155,7 @@ counties <- counties(cb = TRUE, resolution = "20m", year = 2024)
 
 #We could have a function that goes through the list of state and county FIPS codes (STATEFP & COUNTYFP) in the counties table and gives the list of roads in that particular county. We could make it a loop that opens a particular road dataset, allows us to collect the required data, then removes the dataset from the environment so we can do it again for the next dataset.
 
-counties <- counties(cb = TRUE) #Enters the list of counties into R's memory
+counties <- counties(cb = TRUE, year = 2023) #Enters the list of counties into R's memory
 
 Filepaths <- get_state_filepaths("Data_Scraping_and_Database/ToReplace_Roads_2023.csv")
 
@@ -165,7 +165,7 @@ Compilation <- data.frame(COUNTYFP = counties$COUNTYFP, STATE_ID = counties$STAT
   #Filters out territories and DC. The territories all have STATE_ID values that are 60 or higher and DC has a STATE_ID of 11
   filter(STATE_ID < 60 & STATE_ID != 11)
 
-for (i in 1:8) {
+for (i in 1:50) {
   data <- read.csv(Filepaths$file_path[i]) |>
     mutate(COUNTYFP = as.numeric(COUNTYFP)) |>
     mutate(STATE_ID = as.numeric(STATE_ID)) |>
@@ -176,6 +176,10 @@ for (i in 1:8) {
     group_by(COUNTYFP, STATE_ID) |>
     count(SUFFIX) |>
     slice_max(n, n = 1, with_ties = FALSE)
+  
+  # Helpful print out
+  print(paste0("Extracting state ", Filepaths$state[i]))
+  
   for (j in 1:nrow(data)) {
     x <- which(Compilation$COUNTYFP == data$COUNTYFP[j] & Compilation$STATE_ID == data$STATE_ID[j])
     Compilation$MOSTFREQUENT[x] <- data$SUFFIX[j]

@@ -82,7 +82,7 @@ Part 3:
 ## Code
 
 ```{r Jack Kucera}
-Alabama_Roads_2023_Backup <- read_csv("./Data_Scraping_and_Database/Alabama_Roads_2023_Backup.csv", col_types = cols(LINEARID = "c"))
+Alabama_Roads_2023_Backup <- read_csv("./Data_Scraping_and_Database/Alabama_Roads_2023.csv", col_types = cols(LINEARID = "c"))
 
 # Number of roads per county
 Alabama_Roads_2023_Backup |>
@@ -185,6 +185,8 @@ for (i in 1:50) {
     Compilation$MOSTFREQUENT[x] <- data$SUFFIX[j]
     Compilation$N[x] <- data$n[j]
   }
+  
+  
 }
 
 ```
@@ -235,7 +237,7 @@ dat1 <- Alabama_Roads_2023_Backup |>
 
 
 ##rename certain columns so everything matches for joins
-dat1 = rename(dat1, COUNTYFP = COUNTY_ID)
+dat1 = Compilation  #rename(dat1, COUNTYFP = COUNTY_ID)
 dat1$COUNTYFP <- as.character(dat1$COUNTYFP)
 
 ala_counties <- counties %>% filter(STATEFP == "01")
@@ -254,7 +256,7 @@ ala_map_data <- left_join(ala_counties, dat2_plain, by = "GEOID")
 ##wouldnt graph properly without above two lines 
 
 ggplot(data = ala_map_data) +
-  geom_sf(aes(fill = SUFFIX), color = "black", size = 0.1) +
+  geom_sf(aes(fill = MOSTFREQUENT), color = "black", size = 0.1) +
   theme_minimal() +
   labs(
     title = "Most Common Road Suffix by County in Alabama",
@@ -271,4 +273,12 @@ ggplot(data = ala_map_data) +
 
 
 
+```{r Testing Code}
+Compilation |>
+  count(MOSTFREQUENT) |>
+  filter(n < 10) |>
+  print(n = 50)
+
+
+```
 

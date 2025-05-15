@@ -174,7 +174,7 @@ write_state_roads <- function(filepath, year, states = 0) {
     gc()
     
     # Helpful printout
-    print(paste0("Done writing state ", states[i]))
+    print(paste0("Done writing state ", statesFIPS_filepath$state[i]))
   }
   
   # A nice printout

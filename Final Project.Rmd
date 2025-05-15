@@ -280,5 +280,25 @@ Compilation |>
   print(n = 50)
 
 
+Compilation |>
+  filter(MOSTFREQUENT %in% c("Ar", "Cir", "Cr", "Fs", "Gove", "Hwy", "K", "Lake", "Liv", "Lr", "P", "Pl", "Pvt", "R", "Road", "Rte", "S", "Sfc", "T", "Trl", "Way")) |>
+  arrange(MOSTFREQUENT)
+
+dat <- read_csv("Data_Scraping_and_Database/Oregon_Roads_2023.csv", col_types = cols(LINEARID = "c") )
+
+dat |>
+  filter(COUNTYFP == "035") |>
+  mutate(COUNTYFP = as.numeric(COUNTYFP)) |>
+  mutate(STATE_ID = as.numeric(STATE_ID)) |>
+  filter(!is.na(FULLNAME)) |>
+  mutate(SUFFIX = str_extract(FULLNAME, "[:upper:]{1}[:lower:]{0,3}(?:-|\\ )?[:digit:]{0,}$")) |>
+  mutate(SUFFIX = str_extract(SUFFIX, "^[:upper:]{1}[:lower:]{0,3}")) |>
+  filter(!is.na(SUFFIX)) |>
+  filter(SUFFIX == "Fs")
+  
+    group_by(COUNTYFP, STATE_ID) |>
+    count(SUFFIX) |>
+    slice_max(n, n = 10, with_ties = FALSE)
+
 ```
 

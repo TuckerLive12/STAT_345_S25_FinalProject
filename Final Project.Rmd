@@ -175,7 +175,7 @@ for (i in 1:50) {
     filter(!is.na(SUFFIX)) |>
     group_by(COUNTYFP, STATE_ID) |>
     count(SUFFIX) |>
-    slice_max(n, n = 1, with_ties = FALSE)
+    slice_max(n, n = 2, with_ties = FALSE)
   
   # Helpful print out
   print(paste0("Extracting state ", Filepaths$state[i]))
@@ -192,44 +192,6 @@ for (i in 1:50) {
 ```
 
 ## Comments
-
-```{r}
-
-
-# Removes as rows where FULLNAME has na. extracts the suffix from FULLNAME and put into new column called SUFFIX. If SUFFIX is na, replaces it with "Not Applicable".
-dat1 <- Alabama_Roads_2023_Backup |>
-  filter(!is.na(FULLNAME)) |>
-  mutate(SUFFIX = str_extract(FULLNAME, "[:upper:]{1}[:lower:]{0,3}(?:-|\\ )?[:digit:]{0,}$")) |>
-  mutate(SUFFIX = str_extract(SUFFIX, "^[:upper:]{1}[:lower:]{0,3}")) |>
-  mutate(SUFFIX = replace(SUFFIX, is.na(SUFFIX), "Not Applicable")) |>
-  filter(!(SUFFIX == "Not Applicable")) |>
-  group_by(COUNTY_ID) |>
-  count(SUFFIX) |>
-  slice_max(n, n = 1, with_ties = FALSE)
-
-#bind_rows(dat, dat1)
-
-
-# Shows the highest suffix count for each county, ignores the "Not Applicable" Suffixes.
-#Alabama_Roads_2023_Backup |>
-#  filter(!(SUFFIX == "Not Applicable")) |>
-#  group_by(COUNTY_ID, STATE_ID) |>
-#  count(SUFFIX) |>
-#  slice_max(n, n = 1, with_ties = FALSE) |>
-#  print()
-
-dat1 <- Alabama_Roads_2023_Backup |>
-  filter(!is.na(FULLNAME)) |>
-  mutate(SUFFIX = str_extract(FULLNAME, "[:upper:]{1}[:lower:]{0,3}(?:-|\\ )?[:digit:]{0,}$")) |>
-  mutate(SUFFIX = str_extract(SUFFIX, "^[:upper:]{1}[:lower:]{0,3}")) |>
-  mutate(SUFFIX = replace(SUFFIX, is.na(SUFFIX), "Not Applicable")) |>
-  filter(!(SUFFIX == "Not Applicable")) |>
-  group_by(COUNTY_ID) |>
-  count(SUFFIX) |>
-  slice_max(n, n = 1, with_ties = FALSE)
-
-
-```
 
 
 # Maps 
@@ -303,3 +265,49 @@ dat |>
 
 ```
 
+
+
+
+
+
+
+
+
+
+```{r}
+
+
+# Removes as rows where FULLNAME has na. extracts the suffix from FULLNAME and put into new column called SUFFIX. If SUFFIX is na, replaces it with "Not Applicable".
+dat1 <- Alabama_Roads_2023_Backup |>
+  filter(!is.na(FULLNAME)) |>
+  mutate(SUFFIX = str_extract(FULLNAME, "[:upper:]{1}[:lower:]{0,3}(?:-|\\ )?[:digit:]{0,}$")) |>
+  mutate(SUFFIX = str_extract(SUFFIX, "^[:upper:]{1}[:lower:]{0,3}")) |>
+  mutate(SUFFIX = replace(SUFFIX, is.na(SUFFIX), "Not Applicable")) |>
+  filter(!(SUFFIX == "Not Applicable")) |>
+  group_by(COUNTY_ID) |>
+  count(SUFFIX) |>
+  slice_max(n, n = 1, with_ties = FALSE)
+
+#bind_rows(dat, dat1)
+
+
+# Shows the highest suffix count for each county, ignores the "Not Applicable" Suffixes.
+#Alabama_Roads_2023_Backup |>
+#  filter(!(SUFFIX == "Not Applicable")) |>
+#  group_by(COUNTY_ID, STATE_ID) |>
+#  count(SUFFIX) |>
+#  slice_max(n, n = 1, with_ties = FALSE) |>
+#  print()
+
+dat1 <- Alabama_Roads_2023_Backup |>
+  filter(!is.na(FULLNAME)) |>
+  mutate(SUFFIX = str_extract(FULLNAME, "[:upper:]{1}[:lower:]{0,3}(?:-|\\ )?[:digit:]{0,}$")) |>
+  mutate(SUFFIX = str_extract(SUFFIX, "^[:upper:]{1}[:lower:]{0,3}")) |>
+  mutate(SUFFIX = replace(SUFFIX, is.na(SUFFIX), "Not Applicable")) |>
+  filter(!(SUFFIX == "Not Applicable")) |>
+  group_by(COUNTY_ID) |>
+  count(SUFFIX) |>
+  slice_max(n, n = 1, with_ties = FALSE)
+
+
+```

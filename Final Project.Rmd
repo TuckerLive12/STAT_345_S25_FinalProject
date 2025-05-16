@@ -232,6 +232,10 @@ Compilation_States <- Compilation |>
   slice_max(n, n = 1, with_ties = FALSE) |>
   ungroup()
 
+
+counties |>
+  group_by(STATEFP) |>
+  count(STATEFP)
 ```
 
 
@@ -247,12 +251,16 @@ Compilation1 <- Compilation |>
 ##rename certain columns so everything matches for joins
 dat1 = Compilation1  #rename(dat1, COUNTYFP = COUNTY_ID)
 dat1$COUNTYFP <- as.character(dat1$COUNTYFP)
+dat1$STATE_ID <- as.character(dat1$STATE_ID)
+dat1 <- rename(dat1, STATEFP = STATE_ID)
 
+dat1
 
 counties$COUNTYFP <- sub("^0+", "", counties$COUNTYFP)
+counties$STATEFP <- sub("^0+", "", counties$STATEFP)
 
-dat2 = left_join(counties, dat1, by = "COUNTYFP")
-
+dat2 = inner_join(dat1, counties, by = c("COUNTYFP", "STATEFP"), )
+dat2
 ##dat2 is a left join of counties filtered to Alabama(ala_counties) and dat 1 needed to adjust some variable names in order to join  
 ## re cast county id column in dat1. countyfp column in counties df are characters while county id are doubles 
 
@@ -260,7 +268,7 @@ dat2_plain <- dat2 %>% st_drop_geometry()
 
 
 map_data <- left_join(counties, dat2_plain, by = "GEOID")
-
+map_data
 ##wouldnt graph properly without above two lines 
 
 c = ggplot(data = map_data) +
@@ -278,7 +286,8 @@ c = ggplot(data = map_data) +
     plot.background = element_rect(fill = "white", color = NA),
     legend.background = element_rect(fill = "white", color = NA),
     legend.box.background = element_rect(fill = "white", color = NA),
-    plot.margin = margin(l = 0, r=-33, t=0, b=-2, unit = "cm")
+    plot.margin = margin(l = 0, r=-30, t=0, b=-2, unit = "cm"),
+    legend.position = "left"
   )
 ggsave("most_common_road_suffix_by_county.png", plot = c, width = 32, height = 20, dpi = 600)
 print(c)
@@ -307,7 +316,8 @@ d = ggplot(data = Compilation_States2) +
     plot.background = element_rect(fill = "white", color = NA),
     legend.background = element_rect(fill = "white", color = NA),
     legend.box.background = element_rect(fill = "white", color = NA),
-    plot.margin = margin(l = 0, r=-33, t=0, b=-2, unit = "cm")
+    plot.margin = margin(l = 0, r=-30, t=0, b=-2, unit = "cm"),
+    legend.position = "left"
   ) 
 print(d)
 ggsave("most_common_road_suffix_by_State.png", plot = d, width = 32, height = 20, dpi = 600)

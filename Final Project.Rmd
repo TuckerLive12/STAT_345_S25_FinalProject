@@ -340,10 +340,10 @@ Compilation |>
   group_by(SUFFIX) |>
   summarise(number_of_occurrences = sum(n)) |>
   arrange(desc(number_of_occurrences)) |>
-  slice_min(number_of_occurrences, n = 10) |>
+  slice_max(number_of_occurrences, n = 1000) |>
   ggplot(aes(label = SUFFIX, size = number_of_occurrences, color = number_of_occurrences)) +
     geom_text_wordcloud() +
-    scale_size_area(max_size = 10) +  # Adjust max size of words
+    scale_size_area(max_size = 100) +  # Adjust max size of words
     scale_color_gradient(low = "blue", high = "red") +  # Optional: color gradient based on frequency
     labs(title = "Word Cloud of Names by Frequency") +
     theme_minimal() 

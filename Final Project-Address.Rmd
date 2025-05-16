@@ -1,0 +1,148 @@
+---
+title: "Final Project-Address"
+author: "Jack Kucera, Tanner Meighan, Adam Rafique"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+rm(list=ls())
+
+# Libraries
+library(tidyverse)
+library(ggwordcloud)
+library(foreign)
+library(tigris)
+library(sf)
+library(usethis) # GitHub
+library(gitcreds) # GitHub
+
+source("./Data_Scraping_and_Database/Data Scraping.R")
+options(tigris_use_cache = TRUE)
+options(progress_bar = FALSE)
+```
+
+## Backround
+
+We decided to explore the addresses of US's roads. Specifically, the suffix of those addresses. We first needed access to the addresses in a form we could use, which the Census Bureau had on their website. There were two ways we could go about this, we could write our code to scrape the Census Bureau or we could use a free package we discovered, tigris. Of these options, we chose tigris. Tigris had many advantages to writing our own code, the biggest advantage was that tigris had built in functions to extract the exact data we needed in a format that we could easily use. 
+
+We used the tigris functions roads(), counties(), and states() throughout our project. roads() scraped the Census Bureau for road data and geometry based of state FIPS, county FIPS, and year, counties() scraped for county data and geometry based on state and year, and states() scraped for state data and geometry based on year. An important thing to note is that these functions gave geometry which made mapping the data much easier and, therefore, we did not have to mix-and-match different packages to map our subsequent data. Nonetheless, sometimes the geometry was a nuceince but there were ways around that. Overall, tigris was a huge help, very convenient, and a time saver.
+
+
+## Project Parts
+
+After we discovered tigris, we moved on to our first part of the project, mapping all of US's counties.
+
+
+### Part 1: Mapping US Counties
+
+Before we continue, a few things to note. In the project description, the link to the Census Bureau was to addresses in 2023. Therefore, we used 2023 data instead of the more recent 2024 data. All map graphs have a more detailed .png file in the [GitHub repository] (https://github.com/TuckerLive12/STAT_345_S25_FinalProject). ........ Now, let us continue.
+
+Using tirgis, it was trivial to map the US counties. We just had to use the counties() function to get the geometry and map it using ggplot and sf packages.
+
+```{r Mapping US Counties, echo = TRUE}
+# Scraping for county data and geometry
+counties <- counties(cb = TRUE, resolution = "20m", year = 2023)  
+
+# Plotting the US counties
+county_borders <- ggplot(data = counties) +
+  geom_sf(fill = "white", color = "black", size = 0.1) +
+  theme_minimal() +
+  labs(title = "County Boundaries of the United States") +
+  theme(
+    axis.text = element_blank(),
+    axis.ticks = element_blank(),
+    panel.grid = element_blank(),
+    plot.margin = margin(l = 0, r = -33, t = 0, b = -2, unit = "cm")
+  )
+
+#ggsave("us_county_map.png", plot = county_borders, width = 32, height = 20, dpi = 600)
+# Printing the map
+print(county_borders)
+```
+
+```{r Saving .png File, eval=FALSE}
+ggsave("us_county_map.png", plot = county_borders, width = 32, height = 20, dpi = 600)
+```
+
+
+Done! Next, we need to fill in the map with some data. However, before we do that, we to get useable road data.
+
+
+### Part 2: Getting Useable Road Data
+
+Of all the steps, this was the most time consuming, both in writing and running code. Nevertheless, we'll explain how we did it. We decided to split this task into two parts: scraping and summarizing. We would first scrape all the data we thought we would need and then summarize it afterwards. While we could have done it at once, it was easier for splitting the work load and, more importantly, it was safer. Scraping the data took a *long* time and any changes that need to be made to the summarization could have set us back 10s of hours of scraping. So, we splited the task.
+
+Now let us learn how we scraped the data. As mentioned before, we used the tigris functions roads(), counties(), and states() for scraping data. Nevertheless, we did not need the states() function for getting the addresses. How we used roads() and counties() is a little more interesting. 
+
+We decided to use a nested for-loop (although there are better ways as discussed later in the Hindsight section). We would first get all the needed county FIPS for a state from counties(), then in another for-loop we would use those FIPS in roads() to scrape a county's roads and reiteratively add them to a data frame until we had all of that state's road addresses in one data frame. We would then write that data frame into a .csv file to be used later during the summarization process. we would then go to the next state and the process would repeat. We did this for all 50 states.
+
+Overall, the code took about 18 hours to run and we ended up with over 700 MB of data. There are a few important specifics to go over. Remember how I said that roads() also gave geometry? Well, that geometry took *a lot* of memory and was completely useless, so whenever we scraped the county's roads, we would always first remove the geometry before merging the data with the rest of the state's counties. Also, for some reason, the function we used for merging data frames (bind_rows()) could not be used with NULL. So we first had to initialize a data frame using the same code as in the loop, and then start the loop. Lastly, the state FIPS numbers are not 1-50, they are 1-56, of which there are 5 empty FIPS numbers and 1 (FIPS 11) which correspond to the District of Columbia. In order for there not to be an error in counties() when looping, we created our own data frame containing states FIPS as well as a file path per state for easy of writing the .csv file. All of which can be further explored [here] (https://github.com/TuckerLive12/STAT_345_S25_FinalProject/blob/main/Data_Scraping_and_Database/Data%20Scraping.R) (or in our submission on CANVAS).
+
+Before we move on to summarizing, we first need to understand what was in the .csv files. The .csv file (one per state) contained 7 data points per address/road, of which only 3 ended up being useful, the full name of the road (FULLNAME), the county FIPS (COUNTYFP), and the state FIPS (STATE_ID and later changed to STATEFP for joining). Here is a look at the Alabama .csv file using glimpse().
+
+```{r .csv File Example, eval=TRUE, echo=TRUE}
+# Reading in data
+example_data <- read_csv("./Data_Scraping_and_Database/Alabama_Roads_2023.csv", col_types = "ccccccd")
+
+# Glimpse into data
+glimpse(example_data)
+```
+
+
+Now that we know what's in the .csv files, we can start summarizing. First, we needed a way to get the most common suffix in a county. We did this by first confirming that FULLNAME is not null, extracting the suffix (SUFFIX) from the addresses full name (FULLNAME), confirming there is a suffix, then grouping by county FIPS and counting the total of that suffix. Since we wanted all this data in one data frame, just like extracting county roads and combining them earlier, we had to initialize a data frame to merge with the rest of the states summarized data. All of which can be further explored [here] (https://github.com/TuckerLive12/STAT_345_S25_FinalProject/blob/main/Data_Scraping_and_Database/Data%20Scraping.R) (or in our submission on CANVAS).
+
+```{r Summarizing Data}
+# Getting file paths for automatically loading data
+Filepaths <- get_state_filepaths("Data_Scraping_and_Database/ToReplace_Roads_2023.csv")
+
+
+# Extracts total suffix occurrences by county
+# Extracts only the first states (Alabama) suffix occurrences by county
+Compilation <- read_csv(Filepaths$file_path[1], col_types = "c") |>
+    mutate(COUNTYFP = as.numeric(COUNTYFP)) |>
+    mutate(STATE_ID = as.numeric(STATE_ID)) |>
+    filter(!is.na(FULLNAME)) |>
+    mutate(SUFFIX = str_extract(FULLNAME, "[:upper:]{1}[:lower:]{0,3}(?:-|\\ )?[:digit:]{0,}$")) |>
+    mutate(SUFFIX = str_extract(SUFFIX, "^[:upper:]{1}[:lower:]{0,3}")) |>
+    filter(!is.na(SUFFIX)) |>
+    group_by(COUNTYFP, STATE_ID) |>
+    count(SUFFIX)
+
+for (i in 2:50) {
+  # Extracts total suffix occurrences by county
+  # Extracts the rest of the states
+  data <- read_csv(Filepaths$file_path[i], col_types = "c") |>
+    mutate(COUNTYFP = as.numeric(COUNTYFP)) |>
+    mutate(STATE_ID = as.numeric(STATE_ID)) |>
+    filter(!is.na(FULLNAME)) |>
+    mutate(SUFFIX = str_extract(FULLNAME, "[:upper:]{1}[:lower:]{0,3}(?:-|\\ )?[:digit:]{0,}$")) |>
+    mutate(SUFFIX = str_extract(SUFFIX, "^[:upper:]{1}[:lower:]{0,3}")) |>
+    filter(!is.na(SUFFIX)) |>
+    group_by(COUNTYFP, STATE_ID) |>
+    count(SUFFIX)
+  
+  # Helpful print out
+  print(paste0("Extracting state ", Filepaths$state[i]))
+  
+  # Combining data
+  Compilation <- bind_rows(Compilation, data)
+  
+  # Memory managment
+  data <- NULL
+  
+  
+}
+# Memory management
+gc()
+```
+
+Now, we have our summarized data in one data frame. One important thing to note is how we extracted the suffix from the addresses full name. We used two regular expressions, we first applied "[:upper:]{1}[:lower:]{0,3}(?:-|\\ )?[:digit:]{0,}$", then we used "^[:upper:]{1}[:lower:]{0,3}". Since I, Jack Kucera, who is writing this, don't know how these expressions works, here is a quick summary from Grok. "The first regular expression searches for a pattern at the end of FULLNAME consisting of one uppercase letter followed by up to three lowercase letters, optionally followed by a hyphen or space and zero or more digits. The second regular expression refines the extracted SUFFIX by matching only the initial part of one uppercase letter followed by up to three lowercase letters at the start of the string." (Grok)
+
+
+## Conclusion and Hindsight
+
+In conclusion, we had a blast completing this project and are glad we were able compile a stellar submission. Al though in hindsight there were a couple thing we could have done better. First, the scraping........ Second, the regular expression could have been more refined. For example, we probably missed some suffixes that might not have had a capital letter as its first letter. We can easily imagine that someone miss tpyed or wrote a lower case r in rd.
+
+

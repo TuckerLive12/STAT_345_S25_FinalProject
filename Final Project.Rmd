@@ -23,6 +23,8 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 rm(list=ls())
 
+source("./Data_Scraping_and_Database/Data Scraping.R")
+
 # Libraries
 library(tidyverse)
 library(foreign)
@@ -127,7 +129,8 @@ counties <- counties(cb = TRUE, resolution = "20m", year = 2024)
   theme(
     axis.text = element_blank(),
     axis.ticks = element_blank(),
-    panel.grid = element_blank()
+    panel.grid = element_blank(),
+    plot.margin = margin(l = 0, r = -33, t = 0, b = -2, unit = "cm")
   )
  ggsave("us_county_map.png", plot = b, width = 32, height = 20, dpi = 600)
  print(b)
@@ -175,8 +178,7 @@ Compilation <- read_csv(Filepaths$file_path[1]) |>
     mutate(SUFFIX = str_extract(SUFFIX, "^[:upper:]{1}[:lower:]{0,3}")) |>
     filter(!is.na(SUFFIX)) |>
     group_by(COUNTYFP, STATE_ID) |>
-    count(SUFFIX) |>
-    slice_max(n, n = 5, with_ties = FALSE)
+    count(SUFFIX)
 
 for (i in 2:50) {
   data <- read_csv(Filepaths$file_path[i], col_types = "c",) |>
@@ -187,8 +189,7 @@ for (i in 2:50) {
     mutate(SUFFIX = str_extract(SUFFIX, "^[:upper:]{1}[:lower:]{0,3}")) |>
     filter(!is.na(SUFFIX)) |>
     group_by(COUNTYFP, STATE_ID) |>
-    count(SUFFIX) |>
-    slice_max(n, n = 5, with_ties = FALSE)
+    count(SUFFIX)
   
   # Helpful print out
   print(paste0("Extracting state ", Filepaths$state[i]))
@@ -275,69 +276,51 @@ c = ggplot(data = map_data) +
 
 
 ```{r Testing Code}
-Compilation2 <- Compilation |>
+# Function to help add commas to large numbers in graphs
+add_commas <- function(x) {
+  format(x, big.mark = ",", scientific = FALSE)
+}
+
+# Function help in graphs, converts a number 0-1.00 into percent form (eg. 0.27 -> 27%) 
+to_percent <- function(x) {
+  paste0(round(x * 100), "%")
+}
+
+Compilation |>
   group_by(STATE_ID, COUNTYFP) |>
-  slice_max(n, n = 2, with_ties = FALSE) |>
-  slice_tail() |>
-  ungroup()
-
-Compilation2 |>
-  count(SUFFIX) |>
-  filter(n < 10) |>
-  print()
-
-Compilation2 |>
-  count(SUFFIX)
+  count(n())
 
 Compilation |>
-  ungroup() |>
-  count(STATE_ID)
+  group_by(SUFFIX) |>
+  summarise(number_of_occurrences = sum(n)) |>
+  arrange(desc(number_of_occurrences)) |>
+  slice_max(number_of_occurrences, n = 50) |>
+  ggplot(aes(x = reorder(SUFFIX, -number_of_occurrences), y = number_of_occurrences)) +
+    geom_bar(stat = "identity", fill = "skyblue") +
+    labs(x = "Suffix", y = "Number of Occurrences", title = "Top 50 Suffixes by Number of Occurrences in US Roads") +
+    scale_y_continuous(limits = c(0, 2100000), breaks = seq(0, 2100000, by = 100000), labels = add_commas) +
+    theme_minimal() +
+    theme(
+      axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1),
+      #panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank()
+    )
   
-  count(SUFFIX) |>
-  filter(n < 10) |>
-  print()
-
-
 Compilation |>
-  slice_max(N, n = 1, with_ties = FALSE) |>
-  filter(SUFFIX %in% c("Ar", "Cir", "Cr", "Fs", "Gove", "Hwy", "K", "Lake", "Liv", "Lr", "P", "Pl", "Pvt", "R", "Road", "Rte", "S", "Sfc", "T", "Trl", "Way")) |>
-  arrange(SUFFIX)
-
-Compilation |>
-  filter(SUFFIX %in% c("Aa", "Alt", "Aly", "Area", "Ash", "Base", "Bcr", "Blm", "Cs", "D", "Dd", "Dove", "Drum", "Ee", "Ew", "Expy", "Eye", "F", "Farm", "Fork", "G", "Gate", "H", "Hcr", "Hh", "Hts", "Hu", "I", "J", "L", "La", "Lane", "Lobo", "No", "Ns", "Null", "P", "Park", "Path", "Pfrd", "Pp", "Pr", "Pvt", "R", "Rdg", "Road", "Row", "Run", "Scr", "Sd", "Spur", "Sq", "Ter", "Tpke", "U", "V", "Xing", "Y")) |>
-  count(SUFFIX) |>
-  arrange(n)
-
-Compilation |>
-  count(SUFFIX)
-
-dat <- read_csv("Data_Scraping_and_Database/Oregon_Roads_2023.csv", col_types = cols(LINEARID = "c") )
-
-dat |>
-    mutate(COUNTYFP = as.numeric(COUNTYFP)) |>
-    mutate(STATE_ID = as.numeric(STATE_ID)) |>
-    filter(!is.na(FULLNAME)) |>
-    mutate(SUFFIX = str_extract(FULLNAME, "[:upper:]{1}[:lower:]{0,3}(?:-|\\ )?[:digit:]{0,}$")) |>
-    mutate(SUFFIX = str_extract(SUFFIX, "^[:upper:]{1}[:lower:]{0,3}")) |>
-    filter(!is.na(SUFFIX)) |>
-    group_by(COUNTYFP, STATE_ID) |>
-    count(SUFFIX) |>
-    slice_max(n, n = 5, with_ties = FALSE) |>
-    
-
-dat |>
-  filter(COUNTYFP == "035") |>
-  mutate(COUNTYFP = as.numeric(COUNTYFP)) |>
-  mutate(STATE_ID = as.numeric(STATE_ID)) |>
-  filter(!is.na(FULLNAME)) |>
-  mutate(SUFFIX = str_extract(FULLNAME, "[:upper:]{1}[:lower:]{0,3}(?:-|\\ )?[:digit:]{0,}$")) |>
-  mutate(SUFFIX = str_extract(SUFFIX, "^[:upper:]{1}[:lower:]{0,3}")) |>
-  filter(!is.na(SUFFIX)) |>
-  filter(SUFFIX == "Fs")
-  
-    group_by(COUNTYFP, STATE_ID) |>
-    count(SUFFIX) |>
-    slice_max(n, n = 10, with_ties = FALSE)
+  group_by(SUFFIX) |>
+  summarise(percent_of_occurrences = n()/3143) |>
+  arrange(desc(percent_of_occurrences)) |>
+  slice_max(percent_of_occurrences, n = 50) |>
+  ggplot(aes(x = reorder(SUFFIX, -percent_of_occurrences), y = percent_of_occurrences)) +
+    geom_bar(stat = "identity", fill = "skyblue") +
+    labs(x = "Suffix", y = "Percent of Occurrences", title = "Top 50 Suffixes by Percent of Occurrences in US Counties") +
+    scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, by = 0.05), labels = to_percent) +
+    theme_minimal() +
+    theme(
+      axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1),
+      #panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank()
+    )
 
 ```
 

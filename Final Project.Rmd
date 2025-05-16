@@ -292,7 +292,7 @@ c = ggplot(data = map_data) +
 ggsave("most_common_road_suffix_by_county.png", plot = c, width = 32, height = 20, dpi = 600)
 print(c)
 
-## map with every county
+## map of most used suffix for each state 
 
 Compilation_States = Compilation_States %>% 
   rename(STATEFP = STATE_ID)

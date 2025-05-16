@@ -123,8 +123,9 @@ library(tigris)
 options(tigris_use_cache = TRUE)
 
 
-counties <- counties(cb = TRUE, resolution = "20m", year = 2024)  
+counties <- counties(cb = TRUE, resolution = "20m", year = 2023)  
 
+states = states(cb = TRUE, resolution = "20m", year = 2023)
 
  b = ggplot(data = counties) +
   geom_sf(fill = "white", color = "black", size = 0.1) +
@@ -284,17 +285,32 @@ print(c)
 
 ## map with every county
 
-d = ggplot(data = states) +
-  geom_sf(fill = "white", color = "black", size = 0.1) +
+Compilation_States = Compilation_States %>% 
+  rename(STATEFP = STATE_ID)
+Compilation_States$STATEFP <- as.character(Compilation_States$STATEFP)
+states$STATEFP <- sub("^0+", "", states$STATEFP)
+
+Compilation_States2 = left_join(states, Compilation_States, by = "STATEFP")
+
+d = ggplot(data = Compilation_States2) +
+  geom_sf(aes(fill = SUFFIX), color = "black", size = 0.1) +
   theme_minimal() +
-  labs(title = "County Boundaries of the United States") +
+  labs(
+    title = "Most Common Road Suffix by State",
+    fill = "Road Suffix"
+  ) + ##change title for full map
   theme(
     axis.text = element_blank(),
     axis.ticks = element_blank(),
     panel.grid = element_blank(),
-    plot.margin = margin(l = 0, r = -33, t = 0, b = -2, unit = "cm")
+    panel.background = element_rect(fill = "white", color = NA),
+    plot.background = element_rect(fill = "white", color = NA),
+    legend.background = element_rect(fill = "white", color = NA),
+    legend.box.background = element_rect(fill = "white", color = NA),
+    plot.margin = margin(l = 0, r=-33, t=0, b=-2, unit = "cm")
   ) 
 print(d)
+ggsave("most_common_road_suffix_by_State.png", plot = d, width = 32, height = 20, dpi = 600)
 ```
 
 

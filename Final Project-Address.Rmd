@@ -21,6 +21,16 @@ library(gitcreds) # GitHub
 source("./Data_Scraping_and_Database/Data Scraping.R")
 options(tigris_use_cache = TRUE)
 options(progress_bar = FALSE)
+
+# Function to help add commas to large numbers in graphs
+add_commas <- function(x) {
+  format(x, big.mark = ",", scientific = FALSE)
+}
+
+# Function help in graphs, converts a number 0-1.00 into percent form (eg. 0.27 -> 27%) 
+to_percent <- function(x) {
+  paste0(round(x * 100), "%")
+}
 ```
 
 ## Backround
@@ -37,13 +47,13 @@ After we discovered tigris, we moved on to our first part of the project, mappin
 
 ### Part 1: Mapping US Counties
 
-Before we continue, a few things to note. In the project description, the link to the Census Bureau was to addresses in 2023. Therefore, we used 2023 data instead of the more recent 2024 data. All map graphs have a more detailed .png file in the [GitHub repository] (https://github.com/TuckerLive12/STAT_345_S25_FinalProject). ........ Now, let us continue.
+Before we continue, a few things to note. In the project description, the link to the Census Bureau was to addresses in 2023. Therefore, we used 2023 data instead of the more recent 2024 data. All map graphs have a more detailed .png file in the [GitHub repository](https://github.com/TuckerLive12/STAT_345_S25_FinalProject) (or in our submission on CANVAS). Now, let us continue.
 
 Using tirgis, it was trivial to map the US counties. We just had to use the counties() function to get the geometry and map it using ggplot and sf packages.
 
 ```{r Mapping US Counties, echo = TRUE}
 # Scraping for county data and geometry
-counties <- counties(cb = TRUE, resolution = "20m", year = 2023)  
+counties <- counties(cb = TRUE, resolution = "20m", year = 2023, progress_bar = FALSE)  
 
 # Plotting the US counties
 county_borders <- ggplot(data = counties) +
@@ -78,7 +88,7 @@ Now let us learn how we scraped the data. As mentioned before, we used the tigri
 
 We decided to use a nested for-loop (although there are better ways as discussed later in the Hindsight section). We would first get all the needed county FIPS for a state from counties(), then in another for-loop we would use those FIPS in roads() to scrape a county's roads and reiteratively add them to a data frame until we had all of that state's road addresses in one data frame. We would then write that data frame into a .csv file to be used later during the summarization process. we would then go to the next state and the process would repeat. We did this for all 50 states.
 
-Overall, the code took about 18 hours to run and we ended up with over 700 MB of data. There are a few important specifics to go over. Remember how I said that roads() also gave geometry? Well, that geometry took *a lot* of memory and was completely useless, so whenever we scraped the county's roads, we would always first remove the geometry before merging the data with the rest of the state's counties. Also, for some reason, the function we used for merging data frames (bind_rows()) could not be used with NULL. So we first had to initialize a data frame using the same code as in the loop, and then start the loop. Lastly, the state FIPS numbers are not 1-50, they are 1-56, of which there are 5 empty FIPS numbers and 1 (FIPS 11) which correspond to the District of Columbia. In order for there not to be an error in counties() when looping, we created our own data frame containing states FIPS as well as a file path per state for easy of writing the .csv file. All of which can be further explored [here] (https://github.com/TuckerLive12/STAT_345_S25_FinalProject/blob/main/Data_Scraping_and_Database/Data%20Scraping.R) (or in our submission on CANVAS).
+Overall, the code took about 18 hours to run and we ended up with over 700 MB of data. There are a few important specifics to go over. Remember how I said that roads() also gave geometry? Well, that geometry took *a lot* of memory and was completely useless, so whenever we scraped the county's roads, we would always first remove the geometry before merging the data with the rest of the state's counties. Also, for some reason, the function we used for merging data frames (bind_rows()) could not be used with NULL. So we first had to initialize a data frame using the same code as in the loop, and then start the loop. Lastly, the state FIPS numbers are not 1-50, they are 1-56, of which there are 5 empty FIPS numbers and 1 (FIPS 11) which correspond to the District of Columbia. In order for there not to be an error in counties() when looping, we created our own data frame containing states FIPS as well as a file path per state for easy of writing the .csv file. All of the scraping can be further explored [here](https://github.com/TuckerLive12/STAT_345_S25_FinalProject/blob/main/Data_Scraping_and_Database/Data%20Scraping.R) (or in our submission on CANVAS). As for the .csv files, those can be further explored [here](https://github.com/TuckerLive12/STAT_345_S25_FinalProject/blob/main/Data_Scraping_and_Database/).
 
 Before we move on to summarizing, we first need to understand what was in the .csv files. The .csv file (one per state) contained 7 data points per address/road, of which only 3 ended up being useful, the full name of the road (FULLNAME), the county FIPS (COUNTYFP), and the state FIPS (STATE_ID and later changed to STATEFP for joining). Here is a look at the Alabama .csv file using glimpse().
 
@@ -91,9 +101,9 @@ glimpse(example_data)
 ```
 
 
-Now that we know what's in the .csv files, we can start summarizing. First, we needed a way to get the most common suffix in a county. We did this by first confirming that FULLNAME is not null, extracting the suffix (SUFFIX) from the addresses full name (FULLNAME), confirming there is a suffix, then grouping by county FIPS and counting the total of that suffix. Since we wanted all this data in one data frame, just like extracting county roads and combining them earlier, we had to initialize a data frame to merge with the rest of the states summarized data. All of which can be further explored [here] (https://github.com/TuckerLive12/STAT_345_S25_FinalProject/blob/main/Data_Scraping_and_Database/Data%20Scraping.R) (or in our submission on CANVAS).
+Now that we know what's in the .csv files, we can start summarizing. First, we needed a way to get the most common suffix in a county. To do this, we decided to count how many roads have that suffix in a county. To do this we first confirmed that FULLNAME is not null, extracted the suffix (SUFFIX) from the addresses full name (FULLNAME), confirmed there is a suffix, then grouped by county FIPS and counted the total of that suffix. Since we wanted all this data in one data frame, just like extracting county roads and combining them from earlier, we had to initialize a data frame to merge with the rest of the states summarized data. All of which can be further explored [here](https://github.com/TuckerLive12/STAT_345_S25_FinalProject/blob/main/Final%20Project-Address.Rmd) (or in our submission on CANVAS).
 
-```{r Summarizing Data}
+```{r Summarizing Data, eval=TRUE, echo=FALSE, cache=TRUE}
 # Getting file paths for automatically loading data
 Filepaths <- get_state_filepaths("Data_Scraping_and_Database/ToReplace_Roads_2023.csv")
 
@@ -123,26 +133,232 @@ for (i in 2:50) {
     group_by(COUNTYFP, STATE_ID) |>
     count(SUFFIX)
   
-  # Helpful print out
-  print(paste0("Extracting state ", Filepaths$state[i]))
-  
   # Combining data
   Compilation <- bind_rows(Compilation, data)
   
-  # Memory managment
+  # Memory management
   data <- NULL
   
   
 }
-# Memory management
-gc()
 ```
 
 Now, we have our summarized data in one data frame. One important thing to note is how we extracted the suffix from the addresses full name. We used two regular expressions, we first applied "[:upper:]{1}[:lower:]{0,3}(?:-|\\ )?[:digit:]{0,}$", then we used "^[:upper:]{1}[:lower:]{0,3}". Since I, Jack Kucera, who is writing this, don't know how these expressions works, here is a quick summary from Grok. "The first regular expression searches for a pattern at the end of FULLNAME consisting of one uppercase letter followed by up to three lowercase letters, optionally followed by a hyphen or space and zero or more digits. The second regular expression refines the extracted SUFFIX by matching only the initial part of one uppercase letter followed by up to three lowercase letters at the start of the string." (Grok)
 
+One might have noted that we have data frame full of suffix count by county, but not the most common suffix by county. That will be addressed next in Mapping and Graphing.
+
+
+### Part 3: Mapping and Graphing
+
+We are almost done. Where was I? Right, how to get the most common suffix by county. Well, first we group by state FIPS (STATE_ID/STATEFP) and county FIPS (COUNTYFP), then we take the highest count in each group. Now we have the most common suffix by county. But, before we start mapping the most common suffix by county we need to remove some suffixes where that suffix was only the most common suffix in a few counties. More specifically, we removed any suffix with less than 5 counties as this would make the graph easier to read. Otherwise, the color gradient would be to slow to distinguish different suffixes on the map.
+
+Now that we have done that, we can finally get to mapping the most common road suffix by county. As always, all code for the maps and graph can be found [here](https://github.com/TuckerLive12/STAT_345_S25_FinalProject/blob/main/Final%20Project-Address.Rmd) (or in our submission on CANVAS).
+
+```{r Mapping Most Common Road Suffix by County, cache=TRUE}
+# Getting most common suffix by county
+Compilation1 <- Compilation |>
+  group_by(STATE_ID, COUNTYFP) |>
+  slice_max(n, n = 1, with_ties = FALSE) |>
+  # Removes any most frequent suffix that's in less than 5 counties
+  filter(!(SUFFIX %in% c("Ar", "Cir", "Cr", "Fs", "Gove", "K", "Lake", "Liv", "Lr", "P", "Pl", "Pvt", "R", "Road", "S", "Sfc", "T", "Trl", "Way"))) |>
+  ungroup()
+
+# Rename certain columns so everything matches for joins
+dat1 = Compilation1  #rename(dat1, COUNTYFP = COUNTY_ID)
+dat1$COUNTYFP <- as.character(dat1$COUNTYFP)
+dat1$STATE_ID <- as.character(dat1$STATE_ID)
+dat1 <- rename(dat1, STATEFP = STATE_ID)
+
+# Remove trailing zeros
+counties$COUNTYFP <- sub("^0+", "", counties$COUNTYFP)
+counties$STATEFP <- sub("^0+", "", counties$STATEFP)
+
+# Join most common suffix with counties() data by COUNTYFP and STATEFP for geometry and mapping
+dat2 = inner_join(dat1, counties, by = c("COUNTYFP", "STATEFP"), )
+
+# Wouldn't graph properly without next two lines 
+dat2_plain <- dat2 %>% st_drop_geometry()
+map_data <- left_join(counties, dat2_plain, by = "GEOID")
+
+# Mapping most common suffix by county
+most_common_road_suffix_by_county = ggplot(data = map_data) +
+  geom_sf(aes(fill = SUFFIX), color = "black", size = 0.1) +
+  theme_minimal() +
+  labs(
+    title = "Most Common Road Suffix by County",
+    fill = "Road Suffix"
+  ) + ##change title for full map
+  theme(
+    axis.text = element_blank(),
+    axis.ticks = element_blank(),
+    panel.grid = element_blank(),
+    panel.background = element_rect(fill = "white", color = NA),
+    plot.background = element_rect(fill = "white", color = NA),
+    legend.background = element_rect(fill = "white", color = NA),
+    legend.box.background = element_rect(fill = "white", color = NA),
+    plot.margin = margin(l = 0, r=-30, t=0, b=-2, unit = "cm"),
+    legend.position = "left"
+  )
+
+# Printing
+print(most_common_road_suffix_by_county)
+
+# Discrete values
+Compilation1 |>
+  group_by(SUFFIX) |>
+  count(SUFFIX) |>
+  arrange(desc(n)) |>
+  rename(Count_of_Most_Common_Suffix_by_County = n)
+```
+
+```{r Saving County .png File, eval=FALSE}
+ggsave("most_common_road_suffix_by_county.png", plot = most_common_road_suffix_by_county, width = 32, height = 20, dpi = 600)
+```
+
+Its pretty interesting. As you can see, Rd is by far the most common suffix by county. You can still see some St's and Dr's, However after that, it becomes hard to make out a noticeable difference. 
+
+How about we look at most common suffix by state? 
+
+```{r Most Common Suffix by State, cache=TRUE, warning=FALSE, error=FALSE}
+# Needed state geometry
+states <- states(cb = TRUE, resolution = "20m", year = 2023, progress_bar = FALSE)
+
+# Getting most common suffix by state
+Compilation_States <- Compilation |>
+  group_by(STATE_ID, SUFFIX) |>
+  summarise(n = sum(n)) |>
+  arrange(desc(n)) |>
+  slice_max(n, n = 1, with_ties = FALSE) |>
+  ungroup()
+
+# Renaming for join
+Compilation_States = Compilation_States |> 
+  rename(STATEFP = STATE_ID)
+
+# Changing type fo join
+Compilation_States$STATEFP <- as.character(Compilation_States$STATEFP)
+
+# Remove trailing zeros
+states$STATEFP <- sub("^0+", "", states$STATEFP)
+
+# Joining 
+Compilation_States2 = left_join(states, Compilation_States, by = "STATEFP")
+
+most_common_road_suffix_by_state = ggplot(data = Compilation_States2) +
+  geom_sf(aes(fill = SUFFIX), color = "black", size = 0.1) +
+  theme_minimal() +
+  labs(
+    title = "Most Common Road Suffix by State",
+    fill = "Road Suffix"
+  ) + ##change title for full map
+  theme(
+    axis.text = element_blank(),
+    axis.ticks = element_blank(),
+    panel.grid = element_blank(),
+    panel.background = element_rect(fill = "white", color = NA),
+    plot.background = element_rect(fill = "white", color = NA),
+    legend.background = element_rect(fill = "white", color = NA),
+    legend.box.background = element_rect(fill = "white", color = NA),
+    plot.margin = margin(l = 0, r=-30, t=0, b=-2, unit = "cm"),
+    legend.position = "left"
+  ) 
+
+# Printing 
+print(most_common_road_suffix_by_state)
+
+# Discrete values
+Compilation_States |>
+  group_by(SUFFIX) |>
+  count(SUFFIX) |>
+  arrange(desc(n)) |>
+  rename(Count_of_Most_Common_Suffix_by_State = n)
+```
+
+```{r Saving State .png File, eval=FALSE}
+ggsave("most_common_road_suffix_by_state.png", plot = most_common_road_suffix_by_state, width = 32, height = 20, dpi = 600)
+```
+
+As you can see, Rd is by far the most common suffix by state as well. You can still see some St's, however Dr's have dropped off to only 2 out of 50. 
+
+Since the state map does not shown us much, let us look more into the county data. Lets look at the total number of occurrences per suffix. However, since there are a lot of suffixes, lets only look at the top 50.
+
+```{r Suffixes by Number of Occurrences in US Roads}
+# Top 50 Suffixes by Number of Occurrences in US Roads
+Compilation |>
+  group_by(SUFFIX) |>
+  summarise(number_of_occurrences = sum(n)) |>
+  arrange(desc(number_of_occurrences)) |>
+  slice_max(number_of_occurrences, n = 50) |>
+  ggplot(aes(x = reorder(SUFFIX, -number_of_occurrences), y = number_of_occurrences)) +
+    geom_bar(stat = "identity", fill = "skyblue") +
+    labs(x = "Suffix", y = "Number of Occurrences", title = "Top 50 Suffixes by Number of Occurrences in US Roads") +
+    scale_y_continuous(limits = c(0, 2100000), breaks = seq(0, 2100000, by = 100000), labels = add_commas) +
+    theme_minimal() +
+    theme(
+      axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1),
+      #panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank()
+    )
+```
+
+As you can see, the number of occurrences follows closely with the county and state map where Rd is ahead while St and Dr follow behind. Interesting, it seems with the number of occurrences, Rd does not dominate as it had in the maps. Probably because this is total occurrences while the maps are only the most common.
+
+Now, let us look at the percent of occurrences in counties by suffix.
+
+```{r Percent of Occurrences in Counties by Suffix}
+
+# Top 50 Suffixes by Percent of Occurrences in US Counties
+Compilation |>
+  group_by(SUFFIX) |>
+  summarise(percent_of_occurrences = n()/3143) |>
+  arrange(desc(percent_of_occurrences)) |>
+  slice_max(percent_of_occurrences, n = 50) |>
+  ggplot(aes(x = reorder(SUFFIX, -percent_of_occurrences), y = percent_of_occurrences)) +
+    geom_bar(stat = "identity", fill = "skyblue") +
+    labs(x = "Suffix", y = "Percent of Occurrences", title = "Top 50 Suffixes by Percent of Occurrences in US Counties") +
+    scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, by = 0.05), labels = to_percent) +
+    theme_minimal() +
+    theme(
+      axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1),
+      #panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank()
+    )
+
+# Discrete values
+Compilation |> 
+  group_by(SUFFIX) |>
+  summarise(percent_of_occurrences = n()) |>
+  arrange(desc(percent_of_occurrences)) |>
+  slice_max(percent_of_occurrences, n = 50) |>
+  rename(Percent_of_Occurrences_in_Counties_by_Suffix = percent_of_occurrences)
+```
+
+This graph is probably my favorite. It shows how much Rd dominates since the suffix Rd is in every county in the US. (3143 total counties). It also shows that Rd, St, Hwy, Ave, DR, and Ln is in at least 90% of counties. One interesting thing is that Hwy is in 90% of counties, however, only 8 counties have Hwy being the most common suffix. Makes sense since highways are everywhere by few in number.
+
+Lastly, just for fun, we made a word cloud of the number of total occurrences of suffixes, only the top 500 though.
+
+```{r Word Cloud of Number of Occurrences, cache=TRUE}
+# Word cloud of number of occurrences
+Compilation |>
+  group_by(SUFFIX) |>
+  summarise(number_of_occurrences = sum(n)) |>
+  arrange(desc(number_of_occurrences)) |>
+  slice_max(number_of_occurrences, n = 500) |>
+  ggplot(aes(label = SUFFIX, size = number_of_occurrences, color = number_of_occurrences)) +
+    geom_text_wordcloud(grid_margin = 0.05) +
+    scale_size_area(max_size = 30) +  # Adjust max size of words
+    scale_color_gradient(low = "blue", high = "red") +  
+    labs(title = "Top 500 Suffix Occurrences Word Cloud") +
+    theme_minimal() 
+    
+```
+
+
 
 ## Conclusion and Hindsight
 
-In conclusion, we had a blast completing this project and are glad we were able compile a stellar submission. Al though in hindsight there were a couple thing we could have done better. First, the scraping........ Second, the regular expression could have been more refined. For example, we probably missed some suffixes that might not have had a capital letter as its first letter. We can easily imagine that someone miss tpyed or wrote a lower case r in rd.
+In conclusion, we had a blast completing this project and are glad we were able compile a stellar submission. Although in hindsight there were a few things we could have done better. First, the scraping could have been a lot better. We only learned half way through scraping that roads() can accept county FIPS in vector form. If you look at out scraping code (line 78), we originally thought that in order to have COUNTYFP be in the data set we have to manually add it county by county (since roads() doesn't scrape COUNTYFP). However, we only learned later that GEOID contains both state FIPS (STATEFP) and county FIPS (COUNTYFP). So we could have downloaded all the counties together (without needing bind_rows()), then splitting GEOID to get state FIPS (STATEFP) and county FIPS (COUNTYFP). It would have been much faster. Second, the regular expression could have been more refined. For example, we probably missed some suffixes that might not have had a capital letter as its first letter. We can easily imagine that someone miss typed or wrote a lower case r in rd. Lastly, as I'm writing this at 4 am, I realize we could have done better in our knitted file (what your likely reading). Preferably, do this not tired and have a day to review what's written.
+
+
 
 

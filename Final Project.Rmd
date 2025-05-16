@@ -5,6 +5,12 @@ date: "`r Sys.Date()`"
 output: html_document
 ---
 
+
+# Note to professor:
+
+This is our work/test area and is in no way representative of our total work.
+
+
 ### Final Project Description
 
 **General advice:** Get started early. If you wait to the last minute, it will not go well. For this project, you may find yourself spending a reasonable amount of time _searching_ for help.
@@ -105,11 +111,7 @@ Alabama_Roads_2023_Backup |>
   object.size() |>
   format(units = "auto")
 ```
-### Comments
 
-```{r}
-# line 20-45 I want this to be a function 
-```
 
 # Tanners's Work
 
@@ -125,7 +127,7 @@ options(tigris_use_cache = TRUE)
 
 counties <- counties(cb = TRUE, resolution = "20m", year = 2023)  
 
-states = states(cb = TRUE, resolution = "20m", year = 2023)
+states <- states(cb = TRUE, resolution = "20m", year = 2023)
 
  b = ggplot(data = counties) +
   geom_sf(fill = "white", color = "black", size = 0.1) +
@@ -199,12 +201,15 @@ for (i in 2:50) {
   # Helpful print out
   print(paste0("Extracting state ", Filepaths$state[i]))
   
+  # Combinign data
   Compilation <- bind_rows(Compilation, data)
   
+  # Memory managment
   data <- NULL
   
   
 }
+# Memory management
 gc()
 ```
 
@@ -248,28 +253,23 @@ Compilation1 <- Compilation |>
   filter(!(SUFFIX %in% c("Ar", "Cir", "Cr", "Fs", "Gove", "Hwy", "K", "Lake", "Liv", "Lr", "P", "Pl", "Pvt", "R", "Road", "Rte", "S", "Sfc", "T", "Trl", "Way")))
 
 
-##rename certain columns so everything matches for joins
+# Rename certain columns so everything matches for joins
 dat1 = Compilation1  #rename(dat1, COUNTYFP = COUNTY_ID)
 dat1$COUNTYFP <- as.character(dat1$COUNTYFP)
 dat1$STATE_ID <- as.character(dat1$STATE_ID)
 dat1 <- rename(dat1, STATEFP = STATE_ID)
 
-dat1
-
+# Remove trailing zeros
 counties$COUNTYFP <- sub("^0+", "", counties$COUNTYFP)
 counties$STATEFP <- sub("^0+", "", counties$STATEFP)
 
+# Join most common suffix with counties() data by COUNTYFP and STATEFP for geometry and mapping
 dat2 = inner_join(dat1, counties, by = c("COUNTYFP", "STATEFP"), )
-dat2
-##dat2 is a left join of counties filtered to Alabama(ala_counties) and dat 1 needed to adjust some variable names in order to join  
-## re cast county id column in dat1. countyfp column in counties df are characters while county id are doubles 
 
+# Wouldn't graph properly without next two lines 
 dat2_plain <- dat2 %>% st_drop_geometry()
-
-
 map_data <- left_join(counties, dat2_plain, by = "GEOID")
-map_data
-##wouldnt graph properly without above two lines 
+# Wouldn't graph properly without next two lines 
 
 c = ggplot(data = map_data) +
   geom_sf(aes(fill = SUFFIX), color = "black", size = 0.1) +
@@ -385,7 +385,7 @@ Compilation |>
   ggplot(aes(label = SUFFIX, size = number_of_occurrences, color = number_of_occurrences)) +
     geom_text_wordcloud() +
     scale_size_area(max_size = 10) +  # Adjust max size of words
-    scale_color_gradient(low = "blue", high = "red") +  # Optional: color gradient based on frequency
+    scale_color_gradient(low = "blue", high = "red") +  
     labs(title = "Word Cloud of Names by Frequency") +
     theme_minimal() 
     

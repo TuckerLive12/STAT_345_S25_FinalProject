@@ -6,15 +6,12 @@ library(gitcreds) # GitHub
 library(sf)
 
 ################################################
-### TO DO ###
+# NOTES #
 ################################################
-# Run write_all_state_roads() for all the data (Make sure there are no contraints)
+### Function summary comments done by Grok with minor edits
+### If you want to run write_state_roads() make sure that the file path is correct
+##### See function comments for more details
 ################################################
-################################################
-
-###########
-# Function summary comments done by Grok with minor edits
-###########
 
 #' Get County FIPS Codes for a State
 #'
@@ -181,22 +178,9 @@ write_state_roads <- function(filepath, year, states = 0) {
   print("Done Downloading!")
 }
 
-# Downloaded 50 state's roads
+
+
 #write_state_roads("./Data_Scraping_and_Database/ToReplace_Roads_2023.csv",2023,0)
-
-
-
-
-
-
-# Some checking commands
-#identical(unique(tibble$LINEARID), tibble$LINEARID)
-#format(object.size(tibble), units = "auto")
-
-#tibble |>
-#  count(STATE_ID, YEAR, COUNTY_ID)
-#glimpse(tibble)
-
 
 
 

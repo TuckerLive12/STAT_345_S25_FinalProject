@@ -279,10 +279,22 @@ c = ggplot(data = map_data) +
     legend.box.background = element_rect(fill = "white", color = NA),
     plot.margin = margin(l = 0, r=-33, t=0, b=-2, unit = "cm")
   )
- ggsave("most_common_road_suffix_by_county.png", plot = c, width = 32, height = 20, dpi = 600)
- print(c)
- ## map with every county
+ggsave("most_common_road_suffix_by_county.png", plot = c, width = 32, height = 20, dpi = 600)
+print(c)
 
+## map with every county
+
+d = ggplot(data = states) +
+  geom_sf(fill = "white", color = "black", size = 0.1) +
+  theme_minimal() +
+  labs(title = "County Boundaries of the United States") +
+  theme(
+    axis.text = element_blank(),
+    axis.ticks = element_blank(),
+    panel.grid = element_blank(),
+    plot.margin = margin(l = 0, r = -33, t = 0, b = -2, unit = "cm")
+  ) 
+print(d)
 ```
 
 

@@ -27,6 +27,7 @@ source("./Data_Scraping_and_Database/Data Scraping.R")
 
 # Libraries
 library(tidyverse)
+library(ggwordcloud)
 library(foreign)
 library(tigris)
 library(usethis) # GitHub
@@ -209,7 +210,7 @@ gc()
 Compilation1 <- Compilation |>
   group_by(STATE_ID, COUNTYFP) |>
   slice_max(n, n = 1, with_ties = FALSE) |>
-  # Removes any most frequent suffix thats in less than 5 counties
+  # Removes any most frequent suffix that's in less than 5 counties
   filter(!(SUFFIX %in% c("Ar", "Cir", "Cr", "Fs", "Gove", "K", "Lake", "Liv", "Lr", "P", "Pl", "Pvt", "R", "Road", "S", "Sfc", "T", "Trl", "Way"))) |>
   ungroup()
 
@@ -219,6 +220,14 @@ Compilation2 <- Compilation |>
   slice_tail() |>
   filter(!(SUFFIX %in% c("A", "Aly", "Area", "C", "Cir", "Cs", "Cv", "Dade", "Ew", "Fr", "Lcr", "Lk", "Nc", "Ns", "Off", "P", "Pcr", "Pike", "Pl", "Pt", "Pvt", "R", "Road", "Run", "Sp", "Tc", "Ter", "Trl", "Usfs", "Ut", "Way"))) |>
   ungroup()
+
+Compilation_States <- Compilation |>
+  group_by(STATE_ID, SUFFIX) |>
+  summarise(n = sum(n)) |>
+  arrange(desc(n)) |>
+  slice_max(n, n = 1, with_ties = FALSE) |>
+  ungroup()
+
 ```
 
 
@@ -303,6 +312,11 @@ Compilation |>
   
 Compilation |>
   group_by(SUFFIX) |>
+  summarise(percent_of_occurrences = n()) |>
+  arrange(desc(percent_of_occurrences)) 
+
+Compilation |>
+  group_by(SUFFIX) |>
   summarise(percent_of_occurrences = n()/3143) |>
   arrange(desc(percent_of_occurrences)) |>
   slice_max(percent_of_occurrences, n = 50) |>
@@ -316,6 +330,20 @@ Compilation |>
       #panel.grid.major = element_blank(),
       panel.grid.minor = element_blank()
     )
+
+Compilation |>
+  group_by(SUFFIX) |>
+  summarise(number_of_occurrences = sum(n)) |>
+  arrange(desc(number_of_occurrences)) |>
+  slice_min(number_of_occurrences, n = 10) |>
+  ggplot(aes(label = SUFFIX, size = number_of_occurrences, color = number_of_occurrences)) +
+    geom_text_wordcloud() +
+    scale_size_area(max_size = 10) +  # Adjust max size of words
+    scale_color_gradient(low = "blue", high = "red") +  # Optional: color gradient based on frequency
+    labs(title = "Word Cloud of Names by Frequency") +
+    theme_minimal() 
+    
+
 
 ```
 
